@@ -9113,7 +9113,11 @@ function getTriggerContext(lineText) {
   if (skillMatch) return { type: "skill", prefix: skillMatch[1] };
   const pluginMatch = lineText.match(/@(\S*)$/);
   if (pluginMatch) {
-    return { type: "plugin", prefix: pluginMatch[1], start: pluginMatch.index ?? 0 };
+    return {
+      type: "plugin",
+      prefix: pluginMatch[1],
+      start: pluginMatch.index ?? 0
+    };
   }
   return { type: "none" };
 }
@@ -9163,7 +9167,7 @@ function getPluginCompletions(prefix, plugins) {
     insertTextFormat: import_node.InsertTextFormat.PlainText
   }));
 }
-function getFileCompletions(prefix, rootPath2) {
+function getFileCompletions(doc, position, tokenStart, prefix, rootPath2) {
   const items = [];
   const searchDir = prefix.includes("/") ? path.join(rootPath2, prefix.substring(0, prefix.lastIndexOf("/"))) : rootPath2;
   try {
@@ -9176,8 +9180,15 @@ function getFileCompletions(prefix, rootPath2) {
         kind: entry.isDir ? import_node.CompletionItemKind.Folder : import_node.CompletionItemKind.File,
         detail: entry.isDir ? "directory" : "file",
         data: { type: "file", path: relativePath },
-        insertText: relativePath.slice(prefix.length),
-        insertTextFormat: import_node.InsertTextFormat.PlainText
+        // Selecting a file mention consumes the `@` and writes the whole
+        // path — the sigil is prompt state in the Codex composer, not text.
+        textEdit: {
+          range: {
+            start: { line: position.line, character: tokenStart },
+            end: position
+          },
+          newText: relativePath
+        }
       });
       if (items.length >= 50) break;
     }
@@ -9219,8 +9230,20 @@ async function getCompletions(doc, position, rootPath2, commands, skills, plugin
   }
   if (ctx.type === "plugin") {
     const pluginItems = getPluginCompletions(ctx.prefix, plugins);
-    const skillItems = getSkillCompletionsAt(doc, position, ctx.start, ctx.prefix, skills);
-    const fileItems = getFileCompletions(ctx.prefix, rootPath2);
+    const skillItems = getSkillCompletionsAt(
+      doc,
+      position,
+      ctx.start,
+      ctx.prefix,
+      skills
+    );
+    const fileItems = getFileCompletions(
+      doc,
+      position,
+      ctx.start,
+      ctx.prefix,
+      rootPath2
+    );
     return [...pluginItems, ...skillItems, ...fileItems];
   }
   return [];
@@ -9577,7 +9600,10 @@ connection.onInitialize((params) => {
   }
   const customPrompts = discoverCustomPrompts();
   const overrideNames = new Set(customPrompts.map((p) => p.name));
-  allCommands = [...BUILTIN_COMMANDS.filter((c) => !overrideNames.has(c.name)), ...customPrompts];
+  allCommands = [
+    ...BUILTIN_COMMANDS.filter((c) => !overrideNames.has(c.name)),
+    ...customPrompts
+  ];
   allSkills = discoverSkills(rootPath);
   allPlugins = discoverPlugins();
   return {
@@ -9594,7 +9620,14 @@ connection.onInitialize((params) => {
 connection.onCompletion(async (params) => {
   const doc = documents.get(params.textDocument.uri);
   if (!doc) return null;
-  return getCompletions(doc, params.position, rootPath, allCommands, allSkills, allPlugins);
+  return getCompletions(
+    doc,
+    params.position,
+    rootPath,
+    allCommands,
+    allSkills,
+    allPlugins
+  );
 });
 connection.onCompletionResolve((item) => {
   if (item.data?.type === "slash") {

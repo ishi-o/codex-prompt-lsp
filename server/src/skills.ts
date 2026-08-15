@@ -20,7 +20,10 @@ function parseFrontmatter(content: string): Record<string, string> | null {
     if (colonIdx === -1) continue;
     const key = line.slice(0, colonIdx).trim();
     // Strip surrounding quotes if present
-    const value = line.slice(colonIdx + 1).trim().replace(/^["']|["']$/g, "");
+    const value = line
+      .slice(colonIdx + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "");
     if (key && value) result[key] = value;
   }
   return result;

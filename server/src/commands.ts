@@ -22,7 +22,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/archive",
     detail: "Archive the current session and exit",
-    documentation: "Archives the current session and exits Codex. Archived sessions can be resumed later.",
+    documentation:
+      "Archives the current session and exits Codex. Archived sessions can be resumed later.",
   },
   {
     name: "/approve",
@@ -33,7 +34,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/clear",
     detail: "Clear the terminal and start a fresh chat",
-    documentation: "Clears the terminal and starts a fresh chat with an empty context.",
+    documentation:
+      "Clears the terminal and starts a fresh chat with an empty context.",
   },
   {
     name: "/compact",
@@ -55,7 +57,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/diff",
     detail: "Show Git diff including untracked files",
-    documentation: "Shows the Git diff of your working tree, including untracked files.",
+    documentation:
+      "Shows the Git diff of your working tree, including untracked files.",
   },
   {
     name: "/exit",
@@ -65,7 +68,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/experimental",
     detail: "Toggle experimental features",
-    documentation: "Turns experimental Codex features on or off. Restart Codex after changing them.",
+    documentation:
+      "Turns experimental Codex features on or off. Restart Codex after changing them.",
   },
   {
     name: "/feedback",
@@ -86,7 +90,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/import",
     detail: "Import Claude Code or Cursor setup",
-    documentation: "Imports settings and configuration from Claude Code or Cursor.",
+    documentation:
+      "Imports settings and configuration from Claude Code or Cursor.",
   },
   {
     name: "/init",
@@ -124,7 +129,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/plan",
     detail: "Create plans",
-    documentation: "Enters plan mode: Codex drafts a plan before making changes.",
+    documentation:
+      "Enters plan mode: Codex drafts a plan before making changes.",
   },
   {
     name: "/plugins",
@@ -144,7 +150,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/review",
     detail: "Run code review",
-    documentation: "Reviews the changes in your working tree using the current model.",
+    documentation:
+      "Reviews the changes in your working tree using the current model.",
   },
   {
     name: "/skills",
@@ -155,7 +162,8 @@ export const BUILTIN_COMMANDS: SlashCommand[] = [
   {
     name: "/status",
     detail: "Show status",
-    documentation: "Shows current status: model, authentication, workspace, and usage.",
+    documentation:
+      "Shows current status: model, authentication, workspace, and usage.",
   },
   {
     name: "/subagents",

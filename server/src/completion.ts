@@ -28,13 +28,20 @@ export function getTriggerContext(lineText: string): TriggerContext {
   // Match @ mention — the unified mention popup covers files, plugins, and skills
   const pluginMatch = lineText.match(/@(\S*)$/);
   if (pluginMatch) {
-    return { type: "plugin", prefix: pluginMatch[1], start: pluginMatch.index ?? 0 };
+    return {
+      type: "plugin",
+      prefix: pluginMatch[1],
+      start: pluginMatch.index ?? 0,
+    };
   }
 
   return { type: "none" };
 }
 
-export function getSlashCompletions(prefix: string, commands: SlashCommand[]): CompletionItem[] {
+export function getSlashCompletions(
+  prefix: string,
+  commands: SlashCommand[],
+): CompletionItem[] {
   return commands
     .filter((cmd) => cmd.name.startsWith(prefix))
     .map((cmd) => ({
@@ -48,7 +55,10 @@ export function getSlashCompletions(prefix: string, commands: SlashCommand[]): C
     }));
 }
 
-export function getSkillCompletions(prefix: string, skills: Skill[]): CompletionItem[] {
+export function getSkillCompletions(
+  prefix: string,
+  skills: Skill[],
+): CompletionItem[] {
   return skills
     .filter((s) => s.name.startsWith(prefix))
     .map((s) => ({
@@ -71,7 +81,7 @@ export function getSkillCompletionsAt(
   position: Position,
   tokenStart: number,
   prefix: string,
-  skills: Skill[]
+  skills: Skill[],
 ): CompletionItem[] {
   return skills
     .filter((s) => s.name.startsWith(prefix))
@@ -90,7 +100,10 @@ export function getSkillCompletionsAt(
     }));
 }
 
-export function getPluginCompletions(prefix: string, plugins: Plugin[]): CompletionItem[] {
+export function getPluginCompletions(
+  prefix: string,
+  plugins: Plugin[],
+): CompletionItem[] {
   return plugins
     .filter((p) => p.name.startsWith(prefix))
     .map((p) => ({
@@ -103,7 +116,13 @@ export function getPluginCompletions(prefix: string, plugins: Plugin[]): Complet
     }));
 }
 
-export function getFileCompletions(prefix: string, rootPath: string): CompletionItem[] {
+export function getFileCompletions(
+  doc: TextDocument,
+  position: Position,
+  tokenStart: number,
+  prefix: string,
+  rootPath: string,
+): CompletionItem[] {
   const items: CompletionItem[] = [];
   const searchDir = prefix.includes("/")
     ? path.join(rootPath, prefix.substring(0, prefix.lastIndexOf("/")))
@@ -119,8 +138,15 @@ export function getFileCompletions(prefix: string, rootPath: string): Completion
         kind: entry.isDir ? CompletionItemKind.Folder : CompletionItemKind.File,
         detail: entry.isDir ? "directory" : "file",
         data: { type: "file", path: relativePath },
-        insertText: relativePath.slice(prefix.length),
-        insertTextFormat: InsertTextFormat.PlainText,
+        // Selecting a file mention consumes the `@` and writes the whole
+        // path — the sigil is prompt state in the Codex composer, not text.
+        textEdit: {
+          range: {
+            start: { line: position.line, character: tokenStart },
+            end: position,
+          },
+          newText: relativePath,
+        },
       });
       if (items.length >= 50) break;
     }
@@ -164,7 +190,7 @@ export async function getCompletions(
   rootPath: string,
   commands: SlashCommand[],
   skills: Skill[],
-  plugins: Plugin[]
+  plugins: Plugin[],
 ): Promise<CompletionItem[]> {
   const lineText = doc.getText({
     start: { line: position.line, character: 0 },
@@ -183,8 +209,20 @@ export async function getCompletions(
     // @ in the Codex composer opens the unified mention popup: fuzzy file
     // search merged with plugin and skill candidates.
     const pluginItems = getPluginCompletions(ctx.prefix, plugins);
-    const skillItems = getSkillCompletionsAt(doc, position, ctx.start, ctx.prefix, skills);
-    const fileItems = getFileCompletions(ctx.prefix, rootPath);
+    const skillItems = getSkillCompletionsAt(
+      doc,
+      position,
+      ctx.start,
+      ctx.prefix,
+      skills,
+    );
+    const fileItems = getFileCompletions(
+      doc,
+      position,
+      ctx.start,
+      ctx.prefix,
+      rootPath,
+    );
     return [...pluginItems, ...skillItems, ...fileItems];
   }
 

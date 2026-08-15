@@ -4,15 +4,21 @@
   "private": true,
   "scripts": {
     "build": "node esbuild.config.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src *.js",
+    "format": "prettier --write src *.js"
   },
   "dependencies": {
     "vscode-languageserver": "^9.0.0",
     "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@types/node": "^22.0.0",
     "esbuild": "^0.25.0",
-    "typescript": "^5.6.0"
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0"
   }
 }

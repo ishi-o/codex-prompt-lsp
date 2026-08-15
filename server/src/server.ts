@@ -9,7 +9,13 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { getCompletions } from "./completion";
 import { getHover } from "./hover";
 import { BUILTIN_COMMANDS, SlashCommand } from "./commands";
-import { discoverSkills, discoverCustomPrompts, discoverPlugins, Skill, Plugin } from "./skills";
+import {
+  discoverSkills,
+  discoverCustomPrompts,
+  discoverPlugins,
+  Skill,
+  Plugin,
+} from "./skills";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
@@ -31,7 +37,10 @@ connection.onInitialize((params): InitializeResult => {
   // Custom prompts override built-ins with the same name.
   const customPrompts = discoverCustomPrompts();
   const overrideNames = new Set(customPrompts.map((p) => p.name));
-  allCommands = [...BUILTIN_COMMANDS.filter((c) => !overrideNames.has(c.name)), ...customPrompts];
+  allCommands = [
+    ...BUILTIN_COMMANDS.filter((c) => !overrideNames.has(c.name)),
+    ...customPrompts,
+  ];
 
   allSkills = discoverSkills(rootPath);
   allPlugins = discoverPlugins();
@@ -51,7 +60,14 @@ connection.onInitialize((params): InitializeResult => {
 connection.onCompletion(async (params) => {
   const doc = documents.get(params.textDocument.uri);
   if (!doc) return null;
-  return getCompletions(doc, params.position, rootPath, allCommands, allSkills, allPlugins);
+  return getCompletions(
+    doc,
+    params.position,
+    rootPath,
+    allCommands,
+    allSkills,
+    allPlugins,
+  );
 });
 
 connection.onCompletionResolve((item) => {

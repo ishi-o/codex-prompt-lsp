@@ -3,7 +3,10 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { SlashCommand } from "./commands";
 import { Skill, Plugin } from "./skills";
 
-function getWordRange(doc: TextDocument, position: Position): { word: string; range: Range } {
+function getWordRange(
+  doc: TextDocument,
+  position: Position,
+): { word: string; range: Range } {
   const line = doc.getText({
     start: { line: position.line, character: 0 },
     end: { line: position.line + 1, character: 0 },
@@ -29,7 +32,7 @@ export function getHover(
   position: Position,
   commands: SlashCommand[],
   skills: Skill[],
-  plugins: Plugin[]
+  plugins: Plugin[],
 ): Hover | null {
   const { word, range } = getWordRange(doc, position);
 
