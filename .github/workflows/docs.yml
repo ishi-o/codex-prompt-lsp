@@ -1,0 +1,37 @@
+name: Generate Vim Docs
+
+# Regenerates doc/nvim-codex-lsp.txt from README.md with panvimdoc,
+# so the vimdoc never needs to be written or updated by hand.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - ".github/workflows/docs.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    name: Generate vimdoc from README
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate vimdoc
+        uses: kdheepak/panvimdoc@main
+        with:
+          vimdoc: nvim-codex-lsp
+          description: "LSP completions for the Codex CLI chat input"
+          version: "v0.1.0"
+          demojify: true
+          treesitter: true
+
+      - name: Commit doc if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: auto-generate vimdoc [skip ci]"
+          branch: ${{ github.ref_name }}
+          file_pattern: doc/*.txt
