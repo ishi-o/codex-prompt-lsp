@@ -2,6 +2,7 @@
   "name": "nvim-codex-lsp-server",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "node esbuild.config.js",
     "typecheck": "tsc --noEmit",
