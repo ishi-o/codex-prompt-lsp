@@ -4,6 +4,9 @@ M.config = {
   node_cmd = "node",
 }
 
+-- vim.fs.sep requires Neovim 0.12+; fall back to the platform separator.
+local path_sep = vim.fs.sep or package.config:sub(1, 1)
+
 -- Define Codex-specific highlight groups (linked to standard groups by default).
 -- Users can override these in their colorscheme or after/plugin/*.lua.
 local function define_highlights()
@@ -66,7 +69,7 @@ function M.setup(opts)
       if not (
         is_external_editor_buffer(filepath)
         or filepath:sub(1, #codex_home + 1) == codex_home .. "/"
-        or filepath:find(vim.fs.sep .. ".codex" .. vim.fs.sep, 1, true) ~= nil
+        or filepath:find(path_sep .. ".codex" .. path_sep, 1, true) ~= nil
       )
       then
         return
