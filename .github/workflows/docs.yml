@@ -32,9 +32,12 @@ jobs:
           demojify: true
           treesitter: true
 
+      - name: Generate helptags
+        run: vim -Nu NONE -n -es -c "helptags doc/" -c "quit"
+
       - name: Commit doc if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "docs: auto-generate vimdoc [skip ci]"
           branch: ${{ github.ref_name }}
-          file_pattern: doc/*.txt
+          file_pattern: doc/*.txt doc/tags
