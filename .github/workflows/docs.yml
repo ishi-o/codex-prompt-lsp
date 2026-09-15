@@ -20,6 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create vimdoc output directory
+        run: mkdir -p doc
+
       - name: Generate vimdoc
         uses: kdheepak/panvimdoc@main
         with:
