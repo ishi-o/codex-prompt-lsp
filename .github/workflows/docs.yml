@@ -9,16 +9,18 @@ on:
     paths:
       - "README.md"
       - ".github/workflows/docs.yml"
+      - "doc/**"
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     name: Generate vimdoc from README
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Create vimdoc output directory
         run: mkdir -p doc
@@ -35,9 +37,14 @@ jobs:
       - name: Generate helptags
         run: vim -Nu NONE -n -es -c "helptags doc/" -c "quit"
 
-      - name: Commit doc if changed
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Create documentation pull request
+        uses: peter-evans/create-pull-request@v8
         with:
-          commit_message: "docs: auto-generate vimdoc [skip ci]"
-          branch: ${{ github.ref_name }}
-          file_pattern: doc/*.txt doc/tags
+          add-paths: |
+            doc/*.txt
+            doc/tags
+          branch: docs/auto-generate-vimdoc
+          delete-branch: true
+          commit-message: "docs: auto-generate vimdoc"
+          title: "docs: auto-generate vimdoc"
+          body: "Regenerate Vim help documentation from README.md."
