@@ -9613,7 +9613,13 @@ connection.onInitialize((params) => {
         triggerCharacters: ["/", "$", "@"],
         resolveProvider: true
       },
-      hoverProvider: true
+      hoverProvider: true,
+      experimental: {
+        codexCompletionTokens: [
+          ...allSkills.map((skill) => "$" + skill.name),
+          ...allPlugins.map((plugin) => "@" + plugin.name)
+        ]
+      }
     }
   };
 });

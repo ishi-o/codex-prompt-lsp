@@ -15,6 +15,9 @@ markdown files) and attaches a small LSP server that provides:
 - **Unified mentions** (`@`) — `@` in the Codex composer opens the unified
   mention popup: file search (project walk), installed plugins (via
   `codex plugin list --json`), and skills (inserted as `$name`, their sigil)
+- **Atomic completion deletion** — pressing Backspace at the end of an exact
+  `$skill` or `@plugin` completion removes the entire token; incomplete prefixes
+  continue to delete one character at a time
 
 Hover on any of these shows its description.
 
@@ -51,12 +54,19 @@ auto-configures with defaults.
 require("nvim-codex-lsp").setup({
   -- Path to node binary (default: "node")
   node_cmd = "node",
+  -- Delete exact $skill and @plugin completions with one Backspace
+  atomic_backspace = true,
 })
 ```
 
 ## Buffer detection
 
-The plugin activates `markdown.codex` on buffers that match any of:
+The LSP server and buffer-local features attach based only on the
+`markdown.codex` filetype; they do not inspect the buffer path or URI. This
+supports integrations such as [`mini.codex`](https://github.com/ishi-o/mini.codex), which sets that filetype on its `mini-codex://input` buffer.
+
+For convenience, the plugin automatically assigns `markdown.codex` to files
+that match any of:
 
 1. `.tmpXXXXXX.md` in the system temp dir — the Ctrl+G external editor buffer
 2. `$CODEX_HOME/**/*.md` (default `~/.codex/`) — skills, prompts, AGENTS.md
@@ -77,4 +87,3 @@ MIT
 
 <!-- Note: doc/nvim-codex-lsp.txt is auto-generated from this README by
      .github/workflows/docs.yml (panvimdoc). Edit this file, not the vimdoc. -->
-

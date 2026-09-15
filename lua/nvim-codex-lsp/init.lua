@@ -2,6 +2,7 @@ local M = {}
 
 M.config = {
   node_cmd = "node",
+  atomic_backspace = true,
 }
 
 -- vim.fs.sep requires Neovim 0.12+; fall back to the platform separator.
@@ -36,16 +37,27 @@ local function setup_syntax(buf)
   end)
 end
 
+local function setup_buffer(buf, client)
+  setup_syntax(buf)
+  if M.config.atomic_backspace then
+    local tokens = vim.tbl_get(client.server_capabilities, "experimental", "codexCompletionTokens") or {}
+    require("nvim-codex-lsp.atomic").setup(buf, tokens)
+  end
+end
+
 -- The Ctrl+G external editor buffer is a rust tempfile: `.tmpXXXXXX.md`
 -- written to the system temp dir (no codex-specific prefix).
 local function is_external_editor_buffer(filepath)
   local temp_dir = (vim.env.TMPDIR or "/tmp"):gsub("/+$", "")
   local name = vim.fs.basename(filepath)
-  return filepath:gsub("/+$", ""):sub(1, #temp_dir) == temp_dir
+  local file_dir = vim.fs.dirname(filepath)
+  local resolved_temp_dir = vim.uv.fs_realpath(temp_dir) or vim.fs.normalize(temp_dir)
+  local resolved_file_dir = vim.uv.fs_realpath(file_dir) or vim.fs.normalize(file_dir)
+  return resolved_file_dir == resolved_temp_dir
     and name:match("^%.tmp[%w]+%.md$") ~= nil
 end
 
----@param opts? {node_cmd?: string}
+---@param opts? {node_cmd?: string, atomic_backspace?: boolean}
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", M.config, opts or {})
   vim.g.codex_lsp_configured = true
@@ -61,26 +73,41 @@ function M.setup(opts)
   -- but the LSP targets only this specific filetype.
   local home = vim.fn.expand("~")
   local codex_home = vim.env.CODEX_HOME or (home .. "/.codex")
+
+  local function configure_buffer(buf)
+    if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) then
+      return
+    end
+
+    local filepath = vim.api.nvim_buf_get_name(buf)
+    if not (
+      is_external_editor_buffer(filepath)
+      or filepath:sub(1, #codex_home + 1) == codex_home .. "/"
+      or filepath:find(path_sep .. ".codex" .. path_sep, 1, true) ~= nil
+    )
+    then
+      return
+    end
+
+    vim.bo[buf].filetype = "markdown.codex"
+  end
+
+  local filetype_group = vim.api.nvim_create_augroup("nvim-codex-lsp-ft", { clear = true })
   vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
-    group = vim.api.nvim_create_augroup("nvim-codex-lsp-ft", { clear = true }),
+    group = filetype_group,
     pattern = "*.md",
     callback = function(ev)
-      local filepath = vim.api.nvim_buf_get_name(ev.buf)
-      if not (
-        is_external_editor_buffer(filepath)
-        or filepath:sub(1, #codex_home + 1) == codex_home .. "/"
-        or filepath:find(path_sep .. ".codex" .. path_sep, 1, true) ~= nil
-      )
-      then
-        return
-      end
-      vim.bo[ev.buf].filetype = "markdown.codex"
-      -- Schedule so syntax rules apply after the filetype event chain settles.
-      vim.schedule(function()
-        setup_syntax(ev.buf)
-      end)
+      configure_buffer(ev.buf)
     end,
   })
+
+  -- setup() may be scheduled by plugin/nvim-codex-lsp.lua after the initial
+  -- file's BufReadPost event, so configure buffers that are already open too.
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.bo[buf].filetype ~= "markdown.codex" then
+      configure_buffer(buf)
+    end
+  end
 
   -- Resolve absolute path to dist/server.js relative to this file.
   -- This file lives at: lua/nvim-codex-lsp/init.lua
@@ -93,6 +120,16 @@ function M.setup(opts)
     filetypes = { "markdown.codex" },
     root_dir = function(_bufnr, on_dir)
       on_dir(vim.fn.getcwd())
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("LspAttach", {
+    group = vim.api.nvim_create_augroup("nvim-codex-lsp-attach", { clear = true }),
+    callback = function(ev)
+      local client = vim.lsp.get_client_by_id(ev.data.client_id)
+      if client and client.name == "codex_lsp" and vim.bo[ev.buf].filetype == "markdown.codex" then
+        setup_buffer(ev.buf, client)
+      end
     end,
   })
 
