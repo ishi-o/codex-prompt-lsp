@@ -13,8 +13,11 @@ markdown files) and attaches a small LSP server that provides:
   `<project>/.codex/skills/*/SKILL.md` (repo skills, higher priority) and
   `$CODEX_HOME/skills/*/SKILL.md` (user skills)
 - **Unified mentions** (`@`) — `@` in the Codex composer opens the unified
-  mention popup: file search (project walk), installed plugins (via
+  mention popup: fzf-powered fuzzy file search, installed plugins (via
   `codex plugin list --json`), and skills (inserted as `$name`, their sigil)
+- **Server-side fuzzy filtering** — slash commands, skills, plugins, and files
+  are filtered and ranked by the LSP server, so the editor does not need its
+  own fuzzy-completion capability
 - **Atomic completion deletion** — pressing Backspace at the end of an exact
   `$skill` or `@plugin` completion removes the entire token; incomplete prefixes
   continue to delete one character at a time
@@ -47,6 +50,11 @@ require("nvim-codex-lsp").setup()
 
 The plugin works out of the box with no explicit setup — `plugin/nvim-codex-lsp.lua`
 auto-configures with defaults.
+
+The LSP server is editor-neutral and committed as a single esbuild bundle.
+Its runtime libraries — including the pure TypeScript `fzf` matcher — are
+embedded in that bundle, so plugin users do not run `npm install` or install
+any external command-line search tool.
 
 ## Configuration
 

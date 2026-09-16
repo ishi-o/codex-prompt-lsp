@@ -1,5 +1,5 @@
 {
-  "name": "nvim-codex-lsp-server",
+  "name": "codex-lsp-server",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -10,6 +10,7 @@
     "format": "prettier --write src *.js"
   },
   "dependencies": {
+    "fzf": "^0.5.2",
     "vscode-languageserver": "^9.0.0",
     "vscode-languageserver-textdocument": "^1.0.12"
   },

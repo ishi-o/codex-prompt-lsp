@@ -4137,11 +4137,11 @@ var require_main2 = __commonJS({
         CompletionItemKind3.Operator = 24;
         CompletionItemKind3.TypeParameter = 25;
       })(CompletionItemKind2 || (exports3.CompletionItemKind = CompletionItemKind2 = {}));
-      var InsertTextFormat2;
-      (function(InsertTextFormat3) {
-        InsertTextFormat3.PlainText = 1;
-        InsertTextFormat3.Snippet = 2;
-      })(InsertTextFormat2 || (exports3.InsertTextFormat = InsertTextFormat2 = {}));
+      var InsertTextFormat;
+      (function(InsertTextFormat2) {
+        InsertTextFormat2.PlainText = 1;
+        InsertTextFormat2.Snippet = 2;
+      })(InsertTextFormat || (exports3.InsertTextFormat = InsertTextFormat = {}));
       var CompletionItemTag;
       (function(CompletionItemTag2) {
         CompletionItemTag2.Deprecated = 1;
@@ -4178,13 +4178,13 @@ var require_main2 = __commonJS({
         }
         CompletionItem3.create = create;
       })(CompletionItem2 || (exports3.CompletionItem = CompletionItem2 = {}));
-      var CompletionList;
-      (function(CompletionList2) {
+      var CompletionList2;
+      (function(CompletionList3) {
         function create(items, isIncomplete) {
           return { items: items ? items : [], isIncomplete: !!isIncomplete };
         }
-        CompletionList2.create = create;
-      })(CompletionList || (exports3.CompletionList = CompletionList = {}));
+        CompletionList3.create = create;
+      })(CompletionList2 || (exports3.CompletionList = CompletionList2 = {}));
       var MarkedString;
       (function(MarkedString2) {
         function fromPlainText(plainText) {
@@ -9106,11 +9106,987 @@ function getWellformedEdit(textEdit) {
 var import_node = __toESM(require_node3());
 var fs = __toESM(require("fs"));
 var path = __toESM(require("path"));
+
+// node_modules/fzf/dist/fzf.es.js
+var normalized = {
+  216: "O",
+  223: "s",
+  248: "o",
+  273: "d",
+  295: "h",
+  305: "i",
+  320: "l",
+  322: "l",
+  359: "t",
+  383: "s",
+  384: "b",
+  385: "B",
+  387: "b",
+  390: "O",
+  392: "c",
+  393: "D",
+  394: "D",
+  396: "d",
+  398: "E",
+  400: "E",
+  402: "f",
+  403: "G",
+  407: "I",
+  409: "k",
+  410: "l",
+  412: "M",
+  413: "N",
+  414: "n",
+  415: "O",
+  421: "p",
+  427: "t",
+  429: "t",
+  430: "T",
+  434: "V",
+  436: "y",
+  438: "z",
+  477: "e",
+  485: "g",
+  544: "N",
+  545: "d",
+  549: "z",
+  564: "l",
+  565: "n",
+  566: "t",
+  567: "j",
+  570: "A",
+  571: "C",
+  572: "c",
+  573: "L",
+  574: "T",
+  575: "s",
+  576: "z",
+  579: "B",
+  580: "U",
+  581: "V",
+  582: "E",
+  583: "e",
+  584: "J",
+  585: "j",
+  586: "Q",
+  587: "q",
+  588: "R",
+  589: "r",
+  590: "Y",
+  591: "y",
+  592: "a",
+  593: "a",
+  595: "b",
+  596: "o",
+  597: "c",
+  598: "d",
+  599: "d",
+  600: "e",
+  603: "e",
+  604: "e",
+  605: "e",
+  606: "e",
+  607: "j",
+  608: "g",
+  609: "g",
+  610: "G",
+  613: "h",
+  614: "h",
+  616: "i",
+  618: "I",
+  619: "l",
+  620: "l",
+  621: "l",
+  623: "m",
+  624: "m",
+  625: "m",
+  626: "n",
+  627: "n",
+  628: "N",
+  629: "o",
+  633: "r",
+  634: "r",
+  635: "r",
+  636: "r",
+  637: "r",
+  638: "r",
+  639: "r",
+  640: "R",
+  641: "R",
+  642: "s",
+  647: "t",
+  648: "t",
+  649: "u",
+  651: "v",
+  652: "v",
+  653: "w",
+  654: "y",
+  655: "Y",
+  656: "z",
+  657: "z",
+  663: "c",
+  665: "B",
+  666: "e",
+  667: "G",
+  668: "H",
+  669: "j",
+  670: "k",
+  671: "L",
+  672: "q",
+  686: "h",
+  867: "a",
+  868: "e",
+  869: "i",
+  870: "o",
+  871: "u",
+  872: "c",
+  873: "d",
+  874: "h",
+  875: "m",
+  876: "r",
+  877: "t",
+  878: "v",
+  879: "x",
+  7424: "A",
+  7427: "B",
+  7428: "C",
+  7429: "D",
+  7431: "E",
+  7432: "e",
+  7433: "i",
+  7434: "J",
+  7435: "K",
+  7436: "L",
+  7437: "M",
+  7438: "N",
+  7439: "O",
+  7440: "O",
+  7441: "o",
+  7442: "o",
+  7443: "o",
+  7446: "o",
+  7447: "o",
+  7448: "P",
+  7449: "R",
+  7450: "R",
+  7451: "T",
+  7452: "U",
+  7453: "u",
+  7454: "u",
+  7455: "m",
+  7456: "V",
+  7457: "W",
+  7458: "Z",
+  7522: "i",
+  7523: "r",
+  7524: "u",
+  7525: "v",
+  7834: "a",
+  7835: "s",
+  8305: "i",
+  8341: "h",
+  8342: "k",
+  8343: "l",
+  8344: "m",
+  8345: "n",
+  8346: "p",
+  8347: "s",
+  8348: "t",
+  8580: "c"
+};
+for (let i = "\u0300".codePointAt(0); i <= "\u036F".codePointAt(0); ++i) {
+  const diacritic = String.fromCodePoint(i);
+  for (const asciiChar of "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") {
+    const withDiacritic = (asciiChar + diacritic).normalize();
+    const withDiacriticCodePoint = withDiacritic.codePointAt(0);
+    if (withDiacriticCodePoint > 126) {
+      normalized[withDiacriticCodePoint] = asciiChar;
+    }
+  }
+}
+var ranges = {
+  a: [7844, 7863],
+  e: [7870, 7879],
+  o: [7888, 7907],
+  u: [7912, 7921]
+};
+for (const lowerChar of Object.keys(ranges)) {
+  const upperChar = lowerChar.toUpperCase();
+  for (let i = ranges[lowerChar][0]; i <= ranges[lowerChar][1]; ++i) {
+    normalized[i] = i % 2 === 0 ? upperChar : lowerChar;
+  }
+}
+function normalizeRune(rune) {
+  if (rune < 192 || rune > 8580) {
+    return rune;
+  }
+  const normalizedChar = normalized[rune];
+  if (normalizedChar !== void 0)
+    return normalizedChar.codePointAt(0);
+  return rune;
+}
+function toShort(number) {
+  return number;
+}
+function toInt(number) {
+  return number;
+}
+function maxInt16(num1, num2) {
+  return num1 > num2 ? num1 : num2;
+}
+var strToRunes = (str) => str.split("").map((s) => s.codePointAt(0));
+var whitespaceRunes = new Set(
+  " \f\n\r	\v\xA0\u1680\u2028\u2029\u202F\u205F\u3000\uFEFF".split("").map((v) => v.codePointAt(0))
+);
+for (let codePoint = "\u2000".codePointAt(0); codePoint <= "\u200A".codePointAt(0); codePoint++) {
+  whitespaceRunes.add(codePoint);
+}
+var MAX_ASCII = "\x7F".codePointAt(0);
+var CAPITAL_A_RUNE = "A".codePointAt(0);
+var CAPITAL_Z_RUNE = "Z".codePointAt(0);
+var SMALL_A_RUNE = "a".codePointAt(0);
+var SMALL_Z_RUNE = "z".codePointAt(0);
+var NUMERAL_ZERO_RUNE = "0".codePointAt(0);
+var NUMERAL_NINE_RUNE = "9".codePointAt(0);
+function indexAt(index, max, forward) {
+  if (forward) {
+    return index;
+  }
+  return max - index - 1;
+}
+var SCORE_MATCH = 16;
+var SCORE_GAP_START = -3;
+var SCORE_GAP_EXTENTION = -1;
+var BONUS_BOUNDARY = SCORE_MATCH / 2;
+var BONUS_NON_WORD = SCORE_MATCH / 2;
+var BONUS_CAMEL_123 = BONUS_BOUNDARY + SCORE_GAP_EXTENTION;
+var BONUS_CONSECUTIVE = -(SCORE_GAP_START + SCORE_GAP_EXTENTION);
+var BONUS_FIRST_CHAR_MULTIPLIER = 2;
+function createPosSet(withPos) {
+  if (withPos) {
+    return /* @__PURE__ */ new Set();
+  }
+  return null;
+}
+function alloc16(offset, slab2, size) {
+  if (slab2 !== null && slab2.i16.length > offset + size) {
+    const subarray = slab2.i16.subarray(offset, offset + size);
+    return [offset + size, subarray];
+  }
+  return [offset, new Int16Array(size)];
+}
+function alloc32(offset, slab2, size) {
+  if (slab2 !== null && slab2.i32.length > offset + size) {
+    const subarray = slab2.i32.subarray(offset, offset + size);
+    return [offset + size, subarray];
+  }
+  return [offset, new Int32Array(size)];
+}
+function charClassOfAscii(rune) {
+  if (rune >= SMALL_A_RUNE && rune <= SMALL_Z_RUNE) {
+    return 1;
+  } else if (rune >= CAPITAL_A_RUNE && rune <= CAPITAL_Z_RUNE) {
+    return 2;
+  } else if (rune >= NUMERAL_ZERO_RUNE && rune <= NUMERAL_NINE_RUNE) {
+    return 4;
+  } else {
+    return 0;
+  }
+}
+function charClassOfNonAscii(rune) {
+  const char = String.fromCodePoint(rune);
+  if (char !== char.toUpperCase()) {
+    return 1;
+  } else if (char !== char.toLowerCase()) {
+    return 2;
+  } else if (char.match(new RegExp("\\p{Number}", "gu")) !== null) {
+    return 4;
+  } else if (char.match(new RegExp("\\p{Letter}", "gu")) !== null) {
+    return 3;
+  }
+  return 0;
+}
+function charClassOf(rune) {
+  if (rune <= MAX_ASCII) {
+    return charClassOfAscii(rune);
+  }
+  return charClassOfNonAscii(rune);
+}
+function bonusFor(prevClass, currClass) {
+  if (prevClass === 0 && currClass !== 0) {
+    return BONUS_BOUNDARY;
+  } else if (prevClass === 1 && currClass === 2 || prevClass !== 4 && currClass === 4) {
+    return BONUS_CAMEL_123;
+  } else if (currClass === 0) {
+    return BONUS_NON_WORD;
+  }
+  return 0;
+}
+function bonusAt(input, idx) {
+  if (idx === 0) {
+    return BONUS_BOUNDARY;
+  }
+  return bonusFor(charClassOf(input[idx - 1]), charClassOf(input[idx]));
+}
+function trySkip(input, caseSensitive, char, from) {
+  let rest = input.slice(from);
+  let idx = rest.indexOf(char);
+  if (idx === 0) {
+    return from;
+  }
+  if (!caseSensitive && char >= SMALL_A_RUNE && char <= SMALL_Z_RUNE) {
+    if (idx > 0) {
+      rest = rest.slice(0, idx);
+    }
+    const uidx = rest.indexOf(char - 32);
+    if (uidx >= 0) {
+      idx = uidx;
+    }
+  }
+  if (idx < 0) {
+    return -1;
+  }
+  return from + idx;
+}
+function isAscii(runes) {
+  for (const rune of runes) {
+    if (rune >= 128) {
+      return false;
+    }
+  }
+  return true;
+}
+function asciiFuzzyIndex(input, pattern, caseSensitive) {
+  if (!isAscii(input)) {
+    return 0;
+  }
+  if (!isAscii(pattern)) {
+    return -1;
+  }
+  let firstIdx = 0, idx = 0;
+  for (let pidx = 0; pidx < pattern.length; pidx++) {
+    idx = trySkip(input, caseSensitive, pattern[pidx], idx);
+    if (idx < 0) {
+      return -1;
+    }
+    if (pidx === 0 && idx > 0) {
+      firstIdx = idx - 1;
+    }
+    idx++;
+  }
+  return firstIdx;
+}
+var fuzzyMatchV2 = (caseSensitive, normalize, forward, input, pattern, withPos, slab2) => {
+  const M = pattern.length;
+  if (M === 0) {
+    return [{ start: 0, end: 0, score: 0 }, createPosSet(withPos)];
+  }
+  const N = input.length;
+  if (slab2 !== null && N * M > slab2.i16.length) {
+    return fuzzyMatchV1(caseSensitive, normalize, forward, input, pattern, withPos);
+  }
+  const idx = asciiFuzzyIndex(input, pattern, caseSensitive);
+  if (idx < 0) {
+    return [{ start: -1, end: -1, score: 0 }, null];
+  }
+  let offset16 = 0, offset32 = 0, H0 = null, C0 = null, B = null, F = null;
+  [offset16, H0] = alloc16(offset16, slab2, N);
+  [offset16, C0] = alloc16(offset16, slab2, N);
+  [offset16, B] = alloc16(offset16, slab2, N);
+  [offset32, F] = alloc32(offset32, slab2, M);
+  const [, T] = alloc32(offset32, slab2, N);
+  for (let i = 0; i < T.length; i++) {
+    T[i] = input[i];
+  }
+  let maxScore = toShort(0), maxScorePos = 0;
+  let pidx = 0, lastIdx = 0;
+  const pchar0 = pattern[0];
+  let pchar = pattern[0], prevH0 = toShort(0), prevCharClass = 0, inGap = false;
+  let Tsub = T.subarray(idx);
+  let H0sub = H0.subarray(idx).subarray(0, Tsub.length), C0sub = C0.subarray(idx).subarray(0, Tsub.length), Bsub = B.subarray(idx).subarray(0, Tsub.length);
+  for (let [off, char] of Tsub.entries()) {
+    let charClass = null;
+    if (char <= MAX_ASCII) {
+      charClass = charClassOfAscii(char);
+      if (!caseSensitive && charClass === 2) {
+        char += 32;
+      }
+    } else {
+      charClass = charClassOfNonAscii(char);
+      if (!caseSensitive && charClass === 2) {
+        char = String.fromCodePoint(char).toLowerCase().codePointAt(0);
+      }
+      if (normalize) {
+        char = normalizeRune(char);
+      }
+    }
+    Tsub[off] = char;
+    const bonus = bonusFor(prevCharClass, charClass);
+    Bsub[off] = bonus;
+    prevCharClass = charClass;
+    if (char === pchar) {
+      if (pidx < M) {
+        F[pidx] = toInt(idx + off);
+        pidx++;
+        pchar = pattern[Math.min(pidx, M - 1)];
+      }
+      lastIdx = idx + off;
+    }
+    if (char === pchar0) {
+      const score = SCORE_MATCH + bonus * BONUS_FIRST_CHAR_MULTIPLIER;
+      H0sub[off] = score;
+      C0sub[off] = 1;
+      if (M === 1 && (forward && score > maxScore || !forward && score >= maxScore)) {
+        maxScore = score;
+        maxScorePos = idx + off;
+        if (forward && bonus === BONUS_BOUNDARY) {
+          break;
+        }
+      }
+      inGap = false;
+    } else {
+      if (inGap) {
+        H0sub[off] = maxInt16(prevH0 + SCORE_GAP_EXTENTION, 0);
+      } else {
+        H0sub[off] = maxInt16(prevH0 + SCORE_GAP_START, 0);
+      }
+      C0sub[off] = 0;
+      inGap = true;
+    }
+    prevH0 = H0sub[off];
+  }
+  if (pidx !== M) {
+    return [{ start: -1, end: -1, score: 0 }, null];
+  }
+  if (M === 1) {
+    const result = {
+      start: maxScorePos,
+      end: maxScorePos + 1,
+      score: maxScore
+    };
+    if (!withPos) {
+      return [result, null];
+    }
+    const pos2 = /* @__PURE__ */ new Set();
+    pos2.add(maxScorePos);
+    return [result, pos2];
+  }
+  const f0 = F[0];
+  const width = lastIdx - f0 + 1;
+  let H = null;
+  [offset16, H] = alloc16(offset16, slab2, width * M);
+  {
+    const toCopy = H0.subarray(f0, lastIdx + 1);
+    for (const [i, v] of toCopy.entries()) {
+      H[i] = v;
+    }
+  }
+  let [, C] = alloc16(offset16, slab2, width * M);
+  {
+    const toCopy = C0.subarray(f0, lastIdx + 1);
+    for (const [i, v] of toCopy.entries()) {
+      C[i] = v;
+    }
+  }
+  const Fsub = F.subarray(1);
+  const Psub = pattern.slice(1).slice(0, Fsub.length);
+  for (const [off, f] of Fsub.entries()) {
+    let inGap2 = false;
+    const pchar2 = Psub[off], pidx2 = off + 1, row = pidx2 * width, Tsub2 = T.subarray(f, lastIdx + 1), Bsub2 = B.subarray(f).subarray(0, Tsub2.length), Csub = C.subarray(row + f - f0).subarray(0, Tsub2.length), Cdiag = C.subarray(row + f - f0 - 1 - width).subarray(0, Tsub2.length), Hsub = H.subarray(row + f - f0).subarray(0, Tsub2.length), Hdiag = H.subarray(row + f - f0 - 1 - width).subarray(0, Tsub2.length), Hleft = H.subarray(row + f - f0 - 1).subarray(0, Tsub2.length);
+    Hleft[0] = 0;
+    for (const [off2, char] of Tsub2.entries()) {
+      const col = off2 + f;
+      let s1 = 0, s2 = 0, consecutive = 0;
+      if (inGap2) {
+        s2 = Hleft[off2] + SCORE_GAP_EXTENTION;
+      } else {
+        s2 = Hleft[off2] + SCORE_GAP_START;
+      }
+      if (pchar2 === char) {
+        s1 = Hdiag[off2] + SCORE_MATCH;
+        let b = Bsub2[off2];
+        consecutive = Cdiag[off2] + 1;
+        if (b === BONUS_BOUNDARY) {
+          consecutive = 1;
+        } else if (consecutive > 1) {
+          b = maxInt16(b, maxInt16(BONUS_CONSECUTIVE, B[col - consecutive + 1]));
+        }
+        if (s1 + b < s2) {
+          s1 += Bsub2[off2];
+          consecutive = 0;
+        } else {
+          s1 += b;
+        }
+      }
+      Csub[off2] = consecutive;
+      inGap2 = s1 < s2;
+      const score = maxInt16(maxInt16(s1, s2), 0);
+      if (pidx2 === M - 1 && (forward && score > maxScore || !forward && score >= maxScore)) {
+        maxScore = score;
+        maxScorePos = col;
+      }
+      Hsub[off2] = score;
+    }
+  }
+  const pos = createPosSet(withPos);
+  let j = f0;
+  if (withPos && pos !== null) {
+    let i = M - 1;
+    j = maxScorePos;
+    let preferMatch = true;
+    while (true) {
+      const I = i * width, j0 = j - f0, s = H[I + j0];
+      let s1 = 0, s2 = 0;
+      if (i > 0 && j >= F[i]) {
+        s1 = H[I - width + j0 - 1];
+      }
+      if (j > F[i]) {
+        s2 = H[I + j0 - 1];
+      }
+      if (s > s1 && (s > s2 || s === s2 && preferMatch)) {
+        pos.add(j);
+        if (i === 0) {
+          break;
+        }
+        i--;
+      }
+      preferMatch = C[I + j0] > 1 || I + width + j0 + 1 < C.length && C[I + width + j0 + 1] > 0;
+      j--;
+    }
+  }
+  return [{ start: j, end: maxScorePos + 1, score: maxScore }, pos];
+};
+function calculateScore(caseSensitive, normalize, text, pattern, sidx, eidx, withPos) {
+  let pidx = 0, score = 0, inGap = false, consecutive = 0, firstBonus = toShort(0);
+  const pos = createPosSet(withPos);
+  let prevCharClass = 0;
+  if (sidx > 0) {
+    prevCharClass = charClassOf(text[sidx - 1]);
+  }
+  for (let idx = sidx; idx < eidx; idx++) {
+    let rune = text[idx];
+    const charClass = charClassOf(rune);
+    if (!caseSensitive) {
+      if (rune >= CAPITAL_A_RUNE && rune <= CAPITAL_Z_RUNE) {
+        rune += 32;
+      } else if (rune > MAX_ASCII) {
+        rune = String.fromCodePoint(rune).toLowerCase().codePointAt(0);
+      }
+    }
+    if (normalize) {
+      rune = normalizeRune(rune);
+    }
+    if (rune === pattern[pidx]) {
+      if (withPos && pos !== null) {
+        pos.add(idx);
+      }
+      score += SCORE_MATCH;
+      let bonus = bonusFor(prevCharClass, charClass);
+      if (consecutive === 0) {
+        firstBonus = bonus;
+      } else {
+        if (bonus === BONUS_BOUNDARY) {
+          firstBonus = bonus;
+        }
+        bonus = maxInt16(maxInt16(bonus, firstBonus), BONUS_CONSECUTIVE);
+      }
+      if (pidx === 0) {
+        score += bonus * BONUS_FIRST_CHAR_MULTIPLIER;
+      } else {
+        score += bonus;
+      }
+      inGap = false;
+      consecutive++;
+      pidx++;
+    } else {
+      if (inGap) {
+        score += SCORE_GAP_EXTENTION;
+      } else {
+        score += SCORE_GAP_START;
+      }
+      inGap = true;
+      consecutive = 0;
+      firstBonus = 0;
+    }
+    prevCharClass = charClass;
+  }
+  return [score, pos];
+}
+var fuzzyMatchV1 = (caseSensitive, normalize, forward, text, pattern, withPos, slab2) => {
+  if (pattern.length === 0) {
+    return [{ start: 0, end: 0, score: 0 }, null];
+  }
+  if (asciiFuzzyIndex(text, pattern, caseSensitive) < 0) {
+    return [{ start: -1, end: -1, score: 0 }, null];
+  }
+  let pidx = 0, sidx = -1, eidx = -1;
+  const lenRunes = text.length;
+  const lenPattern = pattern.length;
+  for (let index = 0; index < lenRunes; index++) {
+    let rune = text[indexAt(index, lenRunes, forward)];
+    if (!caseSensitive) {
+      if (rune >= CAPITAL_A_RUNE && rune <= CAPITAL_Z_RUNE) {
+        rune += 32;
+      } else if (rune > MAX_ASCII) {
+        rune = String.fromCodePoint(rune).toLowerCase().codePointAt(0);
+      }
+    }
+    if (normalize) {
+      rune = normalizeRune(rune);
+    }
+    const pchar = pattern[indexAt(pidx, lenPattern, forward)];
+    if (rune === pchar) {
+      if (sidx < 0) {
+        sidx = index;
+      }
+      pidx++;
+      if (pidx === lenPattern) {
+        eidx = index + 1;
+        break;
+      }
+    }
+  }
+  if (sidx >= 0 && eidx >= 0) {
+    pidx--;
+    for (let index = eidx - 1; index >= sidx; index--) {
+      const tidx = indexAt(index, lenRunes, forward);
+      let rune = text[tidx];
+      if (!caseSensitive) {
+        if (rune >= CAPITAL_A_RUNE && rune <= CAPITAL_Z_RUNE) {
+          rune += 32;
+        } else if (rune > MAX_ASCII) {
+          rune = String.fromCodePoint(rune).toLowerCase().codePointAt(0);
+        }
+      }
+      const pidx_ = indexAt(pidx, lenPattern, forward);
+      const pchar = pattern[pidx_];
+      if (rune === pchar) {
+        pidx--;
+        if (pidx < 0) {
+          sidx = index;
+          break;
+        }
+      }
+    }
+    if (!forward) {
+      const sidxTemp = sidx;
+      sidx = lenRunes - eidx;
+      eidx = lenRunes - sidxTemp;
+    }
+    const [score, pos] = calculateScore(
+      caseSensitive,
+      normalize,
+      text,
+      pattern,
+      sidx,
+      eidx,
+      withPos
+    );
+    return [{ start: sidx, end: eidx, score }, pos];
+  }
+  return [{ start: -1, end: -1, score: 0 }, null];
+};
+var exactMatchNaive = (caseSensitive, normalize, forward, text, pattern, withPos, slab2) => {
+  if (pattern.length === 0) {
+    return [{ start: 0, end: 0, score: 0 }, null];
+  }
+  const lenRunes = text.length;
+  const lenPattern = pattern.length;
+  if (lenRunes < lenPattern) {
+    return [{ start: -1, end: -1, score: 0 }, null];
+  }
+  if (asciiFuzzyIndex(text, pattern, caseSensitive) < 0) {
+    return [{ start: -1, end: -1, score: 0 }, null];
+  }
+  let pidx = 0;
+  let bestPos = -1, bonus = toShort(0), bestBonus = toShort(-1);
+  for (let index = 0; index < lenRunes; index++) {
+    const index_ = indexAt(index, lenRunes, forward);
+    let rune = text[index_];
+    if (!caseSensitive) {
+      if (rune >= CAPITAL_A_RUNE && rune <= CAPITAL_Z_RUNE) {
+        rune += 32;
+      } else if (rune > MAX_ASCII) {
+        rune = String.fromCodePoint(rune).toLowerCase().codePointAt(0);
+      }
+    }
+    if (normalize) {
+      rune = normalizeRune(rune);
+    }
+    const pidx_ = indexAt(pidx, lenPattern, forward);
+    const pchar = pattern[pidx_];
+    if (pchar === rune) {
+      if (pidx_ === 0) {
+        bonus = bonusAt(text, index_);
+      }
+      pidx++;
+      if (pidx === lenPattern) {
+        if (bonus > bestBonus) {
+          bestPos = index;
+          bestBonus = bonus;
+        }
+        if (bonus === BONUS_BOUNDARY) {
+          break;
+        }
+        index -= pidx - 1;
+        pidx = 0;
+        bonus = 0;
+      }
+    } else {
+      index -= pidx;
+      pidx = 0;
+      bonus = 0;
+    }
+  }
+  if (bestPos >= 0) {
+    let sidx = 0, eidx = 0;
+    if (forward) {
+      sidx = bestPos - lenPattern + 1;
+      eidx = bestPos + 1;
+    } else {
+      sidx = lenRunes - (bestPos + 1);
+      eidx = lenRunes - (bestPos - lenPattern + 1);
+    }
+    const [score] = calculateScore(caseSensitive, normalize, text, pattern, sidx, eidx, false);
+    return [{ start: sidx, end: eidx, score }, null];
+  }
+  return [{ start: -1, end: -1, score: 0 }, null];
+};
+var SLAB_16_SIZE = 100 * 1024;
+var SLAB_32_SIZE = 2048;
+function makeSlab(size16, size32) {
+  return {
+    i16: new Int16Array(size16),
+    i32: new Int32Array(size32)
+  };
+}
+var slab = makeSlab(SLAB_16_SIZE, SLAB_32_SIZE);
+var buildPatternForBasicMatch = (query, casing, normalize) => {
+  let caseSensitive = false;
+  switch (casing) {
+    case "smart-case":
+      if (query.toLowerCase() !== query) {
+        caseSensitive = true;
+      }
+      break;
+    case "case-sensitive":
+      caseSensitive = true;
+      break;
+    case "case-insensitive":
+      query = query.toLowerCase();
+      caseSensitive = false;
+      break;
+  }
+  let queryRunes = strToRunes(query);
+  if (normalize) {
+    queryRunes = queryRunes.map(normalizeRune);
+  }
+  return {
+    queryRunes,
+    caseSensitive
+  };
+};
+function getResultFromScoreMap(scoreMap, limit) {
+  const scoresInDesc = Object.keys(scoreMap).map((v) => parseInt(v, 10)).sort((a, b) => b - a);
+  let result = [];
+  for (const score of scoresInDesc) {
+    result = result.concat(scoreMap[score]);
+    if (result.length >= limit) {
+      break;
+    }
+  }
+  return result;
+}
+function getBasicMatchIter(scoreMap, queryRunes, caseSensitive) {
+  return (idx) => {
+    const itemRunes = this.runesList[idx];
+    if (queryRunes.length > itemRunes.length)
+      return;
+    let [match, positions] = this.algoFn(
+      caseSensitive,
+      this.opts.normalize,
+      this.opts.forward,
+      itemRunes,
+      queryRunes,
+      true,
+      slab
+    );
+    if (match.start === -1)
+      return;
+    if (this.opts.fuzzy === false) {
+      positions = /* @__PURE__ */ new Set();
+      for (let position = match.start; position < match.end; ++position) {
+        positions.add(position);
+      }
+    }
+    const scoreKey = this.opts.sort ? match.score : 0;
+    if (scoreMap[scoreKey] === void 0) {
+      scoreMap[scoreKey] = [];
+    }
+    scoreMap[scoreKey].push({
+      item: this.items[idx],
+      ...match,
+      positions: positions != null ? positions : /* @__PURE__ */ new Set()
+    });
+  };
+}
+function basicMatch(query) {
+  const { queryRunes, caseSensitive } = buildPatternForBasicMatch(
+    query,
+    this.opts.casing,
+    this.opts.normalize
+  );
+  const scoreMap = {};
+  const iter2 = getBasicMatchIter.bind(this)(
+    scoreMap,
+    queryRunes,
+    caseSensitive
+  );
+  for (let i = 0, len = this.runesList.length; i < len; ++i) {
+    iter2(i);
+  }
+  return getResultFromScoreMap(scoreMap, this.opts.limit);
+}
+var isNode = typeof require !== "undefined" && typeof window === "undefined";
+function asyncMatcher(token, len, iter2, onFinish) {
+  return new Promise((resolve, reject) => {
+    const INCREMENT = 1e3;
+    let i = 0, end = Math.min(INCREMENT, len);
+    const step = () => {
+      if (token.cancelled)
+        return reject("search cancelled");
+      for (; i < end; ++i) {
+        iter2(i);
+      }
+      if (end < len) {
+        end = Math.min(end + INCREMENT, len);
+        isNode ? setImmediate(step) : setTimeout(step);
+      } else {
+        resolve(onFinish());
+      }
+    };
+    step();
+  });
+}
+function asyncBasicMatch(query, token) {
+  const { queryRunes, caseSensitive } = buildPatternForBasicMatch(
+    query,
+    this.opts.casing,
+    this.opts.normalize
+  );
+  const scoreMap = {};
+  return asyncMatcher(
+    token,
+    this.runesList.length,
+    getBasicMatchIter.bind(this)(scoreMap, queryRunes, caseSensitive),
+    () => getResultFromScoreMap(scoreMap, this.opts.limit)
+  );
+}
+var defaultOpts = {
+  limit: Infinity,
+  selector: (v) => v,
+  casing: "smart-case",
+  normalize: true,
+  fuzzy: "v2",
+  tiebreakers: [],
+  sort: true,
+  forward: true
+};
+var BaseFinder = class {
+  constructor(list, ...optionsTuple) {
+    this.opts = { ...defaultOpts, ...optionsTuple[0] };
+    this.items = list;
+    this.runesList = list.map((item) => strToRunes(this.opts.selector(item).normalize()));
+    this.algoFn = exactMatchNaive;
+    switch (this.opts.fuzzy) {
+      case "v2":
+        this.algoFn = fuzzyMatchV2;
+        break;
+      case "v1":
+        this.algoFn = fuzzyMatchV1;
+        break;
+    }
+  }
+};
+var syncDefaultOpts = {
+  ...defaultOpts,
+  match: basicMatch
+};
+var SyncFinder = class extends BaseFinder {
+  constructor(list, ...optionsTuple) {
+    super(list, ...optionsTuple);
+    this.opts = { ...syncDefaultOpts, ...optionsTuple[0] };
+  }
+  find(query) {
+    if (query.length === 0 || this.items.length === 0)
+      return this.items.slice(0, this.opts.limit).map(createResultItemWithEmptyPos);
+    query = query.normalize();
+    let result = this.opts.match.bind(this)(query);
+    return postProcessResultItems(result, this.opts);
+  }
+};
+var asyncDefaultOpts = {
+  ...defaultOpts,
+  match: asyncBasicMatch
+};
+var createResultItemWithEmptyPos = (item) => ({
+  item,
+  start: -1,
+  end: -1,
+  score: 0,
+  positions: /* @__PURE__ */ new Set()
+});
+function postProcessResultItems(result, opts) {
+  if (opts.sort) {
+    const { selector } = opts;
+    result.sort((a, b) => {
+      if (a.score === b.score) {
+        for (const tiebreaker of opts.tiebreakers) {
+          const diff = tiebreaker(a, b, selector);
+          if (diff !== 0) {
+            return diff;
+          }
+        }
+      }
+      return 0;
+    });
+  }
+  if (Number.isFinite(opts.limit)) {
+    result.splice(opts.limit);
+  }
+  return result;
+}
+function byLengthAsc(a, b, selector) {
+  return selector(a.item).length - selector(b.item).length;
+}
+function byStartAsc(a, b) {
+  return a.start - b.start;
+}
+var Fzf = class {
+  constructor(list, ...optionsTuple) {
+    this.finder = new SyncFinder(list, ...optionsTuple);
+    this.find = this.finder.find.bind(this.finder);
+  }
+};
+
+// src/completion.ts
 function getTriggerContext(lineText) {
   const slashMatch = lineText.match(/(?:^|\s)(\/[\w-]*)$/);
-  if (slashMatch) return { type: "slash", prefix: slashMatch[1] };
+  if (slashMatch) {
+    return {
+      type: "slash",
+      prefix: slashMatch[1],
+      start: lineText.length - slashMatch[1].length
+    };
+  }
   const skillMatch = lineText.match(/(?:^|\s)\$([\w-]*)$/);
-  if (skillMatch) return { type: "skill", prefix: skillMatch[1] };
+  if (skillMatch) {
+    return {
+      type: "skill",
+      prefix: skillMatch[1],
+      start: lineText.length - skillMatch[1].length - 1
+    };
+  }
   const pluginMatch = lineText.match(/@(\S*)$/);
   if (pluginMatch) {
     return {
@@ -9121,90 +10097,172 @@ function getTriggerContext(lineText) {
   }
   return { type: "none" };
 }
-function getSlashCompletions(prefix, commands) {
-  return commands.filter((cmd) => cmd.name.startsWith(prefix)).map((cmd) => ({
+function replaceToken(position, tokenStart, newText) {
+  return {
+    range: {
+      start: { line: position.line, character: tokenStart },
+      end: position
+    },
+    newText
+  };
+}
+var MAX_COMPLETION_ITEMS = 100;
+function fuzzyFind(items, query, selector) {
+  return new Fzf(items, {
+    selector,
+    limit: MAX_COMPLETION_ITEMS,
+    forward: false
+  }).find(query).map((result) => result.item);
+}
+function serverRankedMetadata(filterText, index) {
+  const metadata = {
+    sortText: index.toString().padStart(8, "0")
+  };
+  if (filterText) metadata.filterText = filterText;
+  return metadata;
+}
+function getSlashCompletions(prefix, commands, position, tokenStart) {
+  return fuzzyFind(commands, prefix, (cmd) => cmd.name).map((cmd, index) => ({
     label: cmd.name,
     kind: import_node.CompletionItemKind.Function,
     detail: cmd.detail,
     // Documentation deferred to completionItem/resolve
     data: { type: "slash", name: cmd.name },
-    insertText: cmd.name.slice(prefix.length),
-    insertTextFormat: import_node.InsertTextFormat.PlainText
+    textEdit: replaceToken(position, tokenStart, cmd.name),
+    ...serverRankedMetadata(prefix, index)
   }));
 }
-function getSkillCompletions(prefix, skills) {
-  return skills.filter((s) => s.name.startsWith(prefix)).map((s) => ({
-    label: "$" + s.name,
-    kind: import_node.CompletionItemKind.Class,
-    detail: s.description || "Skill",
-    data: { type: "skill", name: s.name },
-    insertText: s.name.slice(prefix.length),
-    insertTextFormat: import_node.InsertTextFormat.PlainText
-  }));
+function getSkillCompletions(prefix, skills, position, tokenStart) {
+  return fuzzyFind(skills, prefix, (skill) => skill.name).map(
+    (skill, index) => ({
+      label: "$" + skill.name,
+      kind: import_node.CompletionItemKind.Class,
+      detail: skill.description || "Skill",
+      data: { type: "skill", name: skill.name },
+      textEdit: replaceToken(position, tokenStart, "$" + skill.name),
+      ...serverRankedMetadata("$" + prefix, index)
+    })
+  );
 }
-function getSkillCompletionsAt(_, position, tokenStart, prefix, skills) {
-  return skills.filter((s) => s.name.startsWith(prefix)).map((s) => ({
-    label: "$" + s.name,
-    kind: import_node.CompletionItemKind.Class,
-    detail: s.description || "Skill",
-    data: { type: "skill", name: s.name },
-    textEdit: {
-      range: {
-        start: { line: position.line, character: tokenStart },
-        end: position
-      },
-      newText: "$" + s.name
-    }
-  }));
+function getSkillCompletionsAt(position, tokenStart, prefix, skills) {
+  return fuzzyFind(skills, prefix, (skill) => skill.name).map(
+    (skill, index) => ({
+      label: "$" + skill.name,
+      kind: import_node.CompletionItemKind.Class,
+      detail: skill.description || "Skill",
+      data: { type: "skill", name: skill.name },
+      textEdit: replaceToken(position, tokenStart, "$" + skill.name),
+      ...serverRankedMetadata("@" + prefix, index)
+    })
+  );
 }
-function getPluginCompletions(prefix, plugins) {
-  return plugins.filter((p) => p.name.startsWith(prefix)).map((p) => ({
-    label: "@" + p.name,
-    kind: import_node.CompletionItemKind.Module,
-    detail: p.id,
-    data: { type: "plugin", name: p.name },
-    insertText: p.name.slice(prefix.length),
-    insertTextFormat: import_node.InsertTextFormat.PlainText
-  }));
+function getPluginCompletions(prefix, plugins, position, tokenStart) {
+  return fuzzyFind(plugins, prefix, (plugin) => plugin.name).map(
+    (plugin, index) => ({
+      label: "@" + plugin.name,
+      kind: import_node.CompletionItemKind.Module,
+      detail: plugin.id,
+      data: { type: "plugin", name: plugin.name },
+      textEdit: replaceToken(position, tokenStart, "@" + plugin.name),
+      ...serverRankedMetadata("@" + prefix, index)
+    })
+  );
 }
-function getFileCompletions(_, position, tokenStart, prefix, rootPath2) {
+function getFileCompletions(position, tokenStart, prefix, rootPath2) {
   const items = [];
-  const searchDir = prefix.includes("/") ? path.join(rootPath2, prefix.substring(0, prefix.lastIndexOf("/"))) : rootPath2;
   try {
-    for (const entry of listEntries(searchDir, rootPath2)) {
-      if (!entry.relPath.startsWith(prefix)) continue;
+    for (const [index, entry] of listEntries(rootPath2).find(prefix).map((result) => result.item).entries()) {
       items.push({
-        label: "@" + entry.relPath,
+        label: "@" + abbreviatedPath(entry.relPath),
         kind: entry.isDir ? import_node.CompletionItemKind.Folder : import_node.CompletionItemKind.File,
-        detail: entry.isDir ? "directory" : "file",
+        detail: entry.relPath,
         data: { type: "file", path: entry.relPath },
         // Selecting a file mention consumes the `@` and writes the whole
         // path — the sigil is prompt state in the Codex composer, not text.
-        textEdit: {
-          range: {
-            start: { line: position.line, character: tokenStart },
-            end: position
-          },
-          newText: entry.relPath
-        }
+        textEdit: replaceToken(position, tokenStart, entry.relPath),
+        ...serverRankedMetadata("@" + prefix, index)
       });
-      if (items.length >= 50) break;
+      if (items.length >= MAX_COMPLETION_ITEMS) break;
     }
   } catch {
   }
   return items;
 }
+function abbreviatedPath(relPath) {
+  const segments = relPath.split("/");
+  if (segments.length <= 2) return relPath;
+  return `${segments[0]}/../${segments[segments.length - 1]}`;
+}
 var IGNORED_DIRS = /* @__PURE__ */ new Set([
+  ".git",
+  ".hg",
+  ".svn",
+  ".cache",
+  ".bloop",
+  ".gradle",
+  ".idea",
+  ".metals",
+  ".mypy_cache",
+  ".next",
+  ".nuxt",
+  ".parcel-cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".turbo",
+  ".venv",
+  ".vscode",
+  ".yarn",
   "node_modules",
-  "dist",
   "__pycache__",
+  "bower_components",
+  "coverage",
+  "DerivedData",
+  "dist",
   "target",
   "build",
+  "bin",
+  "out",
+  "output",
+  "Pods",
+  "vendor",
   "venv"
 ]);
-var MAX_WALK_ENTRIES = 1e4;
-function walkDir(rootPath2, dir, depth, maxDepth, results) {
-  if (depth > maxDepth || results.length >= MAX_WALK_ENTRIES) return;
+var IGNORED_FILES = /* @__PURE__ */ new Set([
+  ".DS_Store",
+  "Thumbs.db",
+  "package-lock.json",
+  "yarn.lock",
+  "pnpm-lock.yaml",
+  "bun.lockb",
+  "Cargo.lock",
+  "poetry.lock",
+  "Pipfile.lock",
+  "composer.lock",
+  "Gemfile.lock",
+  "flake.lock",
+  "tags"
+]);
+var IGNORED_FILE_SUFFIXES = [
+  ".log",
+  ".tmp",
+  ".map",
+  ".min.js",
+  ".min.css",
+  ".class",
+  ".jar",
+  ".war",
+  ".ear",
+  ".o",
+  ".a",
+  ".so",
+  ".dylib",
+  ".exe",
+  ".tsbuildinfo",
+  ".pyc"
+];
+var MAX_WALK_ENTRIES = 1e5;
+function walkDir(rootPath2, dir, results) {
+  if (results.length >= MAX_WALK_ENTRIES) return;
   let entries;
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -9212,15 +10270,17 @@ function walkDir(rootPath2, dir, depth, maxDepth, results) {
     return;
   }
   for (const entry of entries) {
-    if (entry.name.startsWith(".")) continue;
     if (entry.isDirectory() && IGNORED_DIRS.has(entry.name)) continue;
+    if (entry.isFile() && (IGNORED_FILES.has(entry.name) || IGNORED_FILE_SUFFIXES.some((suffix) => entry.name.endsWith(suffix)))) {
+      continue;
+    }
     const fullPath = path.join(dir, entry.name);
     results.push({
-      relPath: path.relative(rootPath2, fullPath),
+      relPath: path.relative(rootPath2, fullPath).split(path.sep).join("/"),
       isDir: entry.isDirectory()
     });
     if (entry.isDirectory()) {
-      walkDir(rootPath2, fullPath, depth + 1, maxDepth, results);
+      walkDir(rootPath2, fullPath, results);
     }
     if (results.length >= MAX_WALK_ENTRIES) return;
   }
@@ -9228,20 +10288,27 @@ function walkDir(rootPath2, dir, depth, maxDepth, results) {
 var entryCache = /* @__PURE__ */ new Map();
 var ENTRY_CACHE_TTL_MS = 2e3;
 var ENTRY_CACHE_MAX = 16;
-function listEntries(searchDir, rootPath2) {
-  const cached = entryCache.get(searchDir);
+function listEntries(rootPath2) {
+  const cached = entryCache.get(rootPath2);
   if (cached && cached.expiresAt > Date.now()) return cached.entries;
   const entries = [];
-  walkDir(rootPath2, searchDir, 0, 3, entries);
-  entryCache.set(searchDir, {
+  walkDir(rootPath2, rootPath2, entries);
+  entries.sort((left, right) => left.relPath.localeCompare(right.relPath));
+  const finder = new Fzf(entries, {
+    selector: (entry) => entry.relPath,
+    limit: MAX_COMPLETION_ITEMS,
+    forward: false,
+    tiebreakers: [byLengthAsc, byStartAsc]
+  });
+  entryCache.set(rootPath2, {
     expiresAt: Date.now() + ENTRY_CACHE_TTL_MS,
-    entries
+    entries: finder
   });
   if (entryCache.size > ENTRY_CACHE_MAX) {
     const oldest = entryCache.keys().next().value;
     if (oldest !== void 0) entryCache.delete(oldest);
   }
-  return entries;
+  return finder;
 }
 async function getCompletions(doc, position, rootPath2, commands, skills, plugins) {
   const lineText = doc.getText({
@@ -9250,30 +10317,42 @@ async function getCompletions(doc, position, rootPath2, commands, skills, plugin
   });
   const ctx = getTriggerContext(lineText);
   if (ctx.type === "slash") {
-    return getSlashCompletions(ctx.prefix, commands);
+    return {
+      isIncomplete: true,
+      items: getSlashCompletions(ctx.prefix, commands, position, ctx.start)
+    };
   }
   if (ctx.type === "skill") {
-    return getSkillCompletions(ctx.prefix, skills);
+    return {
+      isIncomplete: true,
+      items: getSkillCompletions(ctx.prefix, skills, position, ctx.start)
+    };
   }
   if (ctx.type === "plugin") {
-    const pluginItems = getPluginCompletions(ctx.prefix, plugins);
+    const pluginItems = getPluginCompletions(
+      ctx.prefix,
+      plugins,
+      position,
+      ctx.start
+    );
     const skillItems = getSkillCompletionsAt(
-      doc,
       position,
       ctx.start,
       ctx.prefix,
       skills
     );
     const fileItems = getFileCompletions(
-      doc,
       position,
       ctx.start,
       ctx.prefix,
       rootPath2
     );
-    return [...pluginItems, ...skillItems, ...fileItems];
+    return {
+      isIncomplete: true,
+      items: [...pluginItems, ...skillItems, ...fileItems]
+    };
   }
-  return [];
+  return { isIncomplete: false, items: [] };
 }
 
 // src/hover.ts
@@ -9738,3 +10817,12 @@ connection.onHover((params) => {
 });
 documents.listen(connection);
 connection.listen();
+/*! Bundled license information:
+
+fzf/dist/fzf.es.js:
+  (** @license
+   * fzf v0.5.2
+   * Copyright (c) 2021 Ajit
+   * Licensed under BSD 3-Clause
+   *)
+*/
