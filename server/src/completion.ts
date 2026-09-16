@@ -77,7 +77,7 @@ export function getSkillCompletions(
  * `$` sigil, so the textEdit replaces the typed `@token` with `$name`.
  */
 export function getSkillCompletionsAt(
-  doc: TextDocument,
+  _: TextDocument,
   position: Position,
   tokenStart: number,
   prefix: string,
@@ -117,7 +117,7 @@ export function getPluginCompletions(
 }
 
 export function getFileCompletions(
-  doc: TextDocument,
+  _: TextDocument,
   position: Position,
   tokenStart: number,
   prefix: string,
@@ -129,15 +129,13 @@ export function getFileCompletions(
     : rootPath;
 
   try {
-    const entries = walkDir(searchDir, 0, 3);
-    for (const entry of entries) {
-      const relativePath = path.relative(rootPath, entry.fullPath);
-      if (!relativePath.startsWith(prefix)) continue;
+    for (const entry of listEntries(searchDir, rootPath)) {
+      if (!entry.relPath.startsWith(prefix)) continue;
       items.push({
-        label: "@" + relativePath,
+        label: "@" + entry.relPath,
         kind: entry.isDir ? CompletionItemKind.Folder : CompletionItemKind.File,
         detail: entry.isDir ? "directory" : "file",
-        data: { type: "file", path: relativePath },
+        data: { type: "file", path: entry.relPath },
         // Selecting a file mention consumes the `@` and writes the whole
         // path — the sigil is prompt state in the Codex composer, not text.
         textEdit: {
@@ -145,7 +143,7 @@ export function getFileCompletions(
             start: { line: position.line, character: tokenStart },
             end: position,
           },
-          newText: relativePath,
+          newText: entry.relPath,
         },
       });
       if (items.length >= 50) break;
@@ -158,30 +156,76 @@ export function getFileCompletions(
 }
 
 interface DirEntry {
-  fullPath: string;
+  relPath: string;
   isDir: boolean;
 }
 
-function walkDir(dir: string, depth: number, maxDepth: number): DirEntry[] {
-  if (depth > maxDepth) return [];
-  const results: DirEntry[] = [];
+const IGNORED_DIRS = new Set([
+  "node_modules",
+  "dist",
+  "__pycache__",
+  "target",
+  "build",
+  "venv",
+]);
+
+const MAX_WALK_ENTRIES = 10000;
+
+function walkDir(
+  rootPath: string,
+  dir: string,
+  depth: number,
+  maxDepth: number,
+  results: DirEntry[],
+): void {
+  if (depth > maxDepth || results.length >= MAX_WALK_ENTRIES) return;
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch {
-    return [];
+    return;
   }
   for (const entry of entries) {
-    // Skip hidden files and common noise directories
     if (entry.name.startsWith(".")) continue;
-    if (["node_modules", "dist", "__pycache__"].includes(entry.name)) continue;
+    if (entry.isDirectory() && IGNORED_DIRS.has(entry.name)) continue;
     const fullPath = path.join(dir, entry.name);
-    results.push({ fullPath, isDir: entry.isDirectory() });
+    results.push({
+      relPath: path.relative(rootPath, fullPath),
+      isDir: entry.isDirectory(),
+    });
     if (entry.isDirectory()) {
-      results.push(...walkDir(fullPath, depth + 1, maxDepth));
+      walkDir(rootPath, fullPath, depth + 1, maxDepth, results);
     }
+    if (results.length >= MAX_WALK_ENTRIES) return;
   }
-  return results;
+}
+
+// Typing `@src/com…` fires one completion request per keystroke; the TTL
+// keeps only the first request on disk.
+const entryCache = new Map<
+  string,
+  { expiresAt: number; entries: DirEntry[] }
+>();
+const ENTRY_CACHE_TTL_MS = 2000;
+const ENTRY_CACHE_MAX = 16;
+
+function listEntries(searchDir: string, rootPath: string): DirEntry[] {
+  const cached = entryCache.get(searchDir);
+  if (cached && cached.expiresAt > Date.now()) return cached.entries;
+
+  const entries: DirEntry[] = [];
+  walkDir(rootPath, searchDir, 0, 3, entries);
+  entryCache.set(searchDir, {
+    expiresAt: Date.now() + ENTRY_CACHE_TTL_MS,
+    entries,
+  });
+
+  // Map iteration order is insertion order — evict the oldest.
+  if (entryCache.size > ENTRY_CACHE_MAX) {
+    const oldest = entryCache.keys().next().value;
+    if (oldest !== undefined) entryCache.delete(oldest);
+  }
+  return entries;
 }
 
 export async function getCompletions(

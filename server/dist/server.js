@@ -9142,7 +9142,7 @@ function getSkillCompletions(prefix, skills) {
     insertTextFormat: import_node.InsertTextFormat.PlainText
   }));
 }
-function getSkillCompletionsAt(doc, position, tokenStart, prefix, skills) {
+function getSkillCompletionsAt(_, position, tokenStart, prefix, skills) {
   return skills.filter((s) => s.name.startsWith(prefix)).map((s) => ({
     label: "$" + s.name,
     kind: import_node.CompletionItemKind.Class,
@@ -9167,19 +9167,17 @@ function getPluginCompletions(prefix, plugins) {
     insertTextFormat: import_node.InsertTextFormat.PlainText
   }));
 }
-function getFileCompletions(doc, position, tokenStart, prefix, rootPath2) {
+function getFileCompletions(_, position, tokenStart, prefix, rootPath2) {
   const items = [];
   const searchDir = prefix.includes("/") ? path.join(rootPath2, prefix.substring(0, prefix.lastIndexOf("/"))) : rootPath2;
   try {
-    const entries = walkDir(searchDir, 0, 3);
-    for (const entry of entries) {
-      const relativePath = path.relative(rootPath2, entry.fullPath);
-      if (!relativePath.startsWith(prefix)) continue;
+    for (const entry of listEntries(searchDir, rootPath2)) {
+      if (!entry.relPath.startsWith(prefix)) continue;
       items.push({
-        label: "@" + relativePath,
+        label: "@" + entry.relPath,
         kind: entry.isDir ? import_node.CompletionItemKind.Folder : import_node.CompletionItemKind.File,
         detail: entry.isDir ? "directory" : "file",
-        data: { type: "file", path: relativePath },
+        data: { type: "file", path: entry.relPath },
         // Selecting a file mention consumes the `@` and writes the whole
         // path — the sigil is prompt state in the Codex composer, not text.
         textEdit: {
@@ -9187,7 +9185,7 @@ function getFileCompletions(doc, position, tokenStart, prefix, rootPath2) {
             start: { line: position.line, character: tokenStart },
             end: position
           },
-          newText: relativePath
+          newText: entry.relPath
         }
       });
       if (items.length >= 50) break;
@@ -9196,25 +9194,54 @@ function getFileCompletions(doc, position, tokenStart, prefix, rootPath2) {
   }
   return items;
 }
-function walkDir(dir, depth, maxDepth) {
-  if (depth > maxDepth) return [];
-  const results = [];
+var IGNORED_DIRS = /* @__PURE__ */ new Set([
+  "node_modules",
+  "dist",
+  "__pycache__",
+  "target",
+  "build",
+  "venv"
+]);
+var MAX_WALK_ENTRIES = 1e4;
+function walkDir(rootPath2, dir, depth, maxDepth, results) {
+  if (depth > maxDepth || results.length >= MAX_WALK_ENTRIES) return;
   let entries;
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch {
-    return [];
+    return;
   }
   for (const entry of entries) {
     if (entry.name.startsWith(".")) continue;
-    if (["node_modules", "dist", "__pycache__"].includes(entry.name)) continue;
+    if (entry.isDirectory() && IGNORED_DIRS.has(entry.name)) continue;
     const fullPath = path.join(dir, entry.name);
-    results.push({ fullPath, isDir: entry.isDirectory() });
+    results.push({
+      relPath: path.relative(rootPath2, fullPath),
+      isDir: entry.isDirectory()
+    });
     if (entry.isDirectory()) {
-      results.push(...walkDir(fullPath, depth + 1, maxDepth));
+      walkDir(rootPath2, fullPath, depth + 1, maxDepth, results);
     }
+    if (results.length >= MAX_WALK_ENTRIES) return;
   }
-  return results;
+}
+var entryCache = /* @__PURE__ */ new Map();
+var ENTRY_CACHE_TTL_MS = 2e3;
+var ENTRY_CACHE_MAX = 16;
+function listEntries(searchDir, rootPath2) {
+  const cached = entryCache.get(searchDir);
+  if (cached && cached.expiresAt > Date.now()) return cached.entries;
+  const entries = [];
+  walkDir(rootPath2, searchDir, 0, 3, entries);
+  entryCache.set(searchDir, {
+    expiresAt: Date.now() + ENTRY_CACHE_TTL_MS,
+    entries
+  });
+  if (entryCache.size > ENTRY_CACHE_MAX) {
+    const oldest = entryCache.keys().next().value;
+    if (oldest !== void 0) entryCache.delete(oldest);
+  }
+  return entries;
 }
 async function getCompletions(doc, position, rootPath2, commands, skills, plugins) {
   const lineText = doc.getText({
@@ -9563,26 +9590,44 @@ ${desc}`
   return prompts;
 }
 function discoverPlugins() {
-  try {
-    const result = (0, import_child_process.spawnSync)("codex", ["plugin", "list", "--json"], {
-      encoding: "utf8",
-      timeout: 3e3
+  return new Promise((resolve) => {
+    const child = (0, import_child_process.spawn)("codex", ["plugin", "list", "--json"], {
+      stdio: ["ignore", "pipe", "ignore"]
     });
-    if (result.status !== 0 || !result.stdout) return [];
-    const raw = JSON.parse(result.stdout);
-    const installed = raw.installed ?? [];
-    return installed.map((p) => {
-      const id = String(p.id ?? p.name ?? "");
-      const display = String(p.display_name ?? p.name ?? id);
-      return {
-        name: display || id.split("@")[0],
-        id,
-        description: String(p.description ?? p.short_description ?? "")
-      };
+    let stdout = "";
+    const timer = setTimeout(() => {
+      child.kill();
+      resolve([]);
+    }, 3e3);
+    child.stdout?.on("data", (chunk) => {
+      stdout += chunk;
     });
-  } catch {
-    return [];
-  }
+    child.on("error", () => {
+      clearTimeout(timer);
+      resolve([]);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      if (code !== 0 || !stdout) return resolve([]);
+      try {
+        const raw = JSON.parse(stdout);
+        const installed = raw.installed ?? [];
+        resolve(
+          installed.map((p) => {
+            const id = String(p.id ?? p.name ?? "");
+            const display = String(p.display_name ?? p.name ?? id);
+            return {
+              name: display || id.split("@")[0],
+              id,
+              description: String(p.description ?? p.short_description ?? "")
+            };
+          })
+        );
+      } catch {
+        resolve([]);
+      }
+    });
+  });
 }
 
 // src/server.ts
@@ -9592,11 +9637,15 @@ var rootPath = process.cwd();
 var allCommands = [];
 var allSkills = [];
 var allPlugins = [];
+function fileUriToPath(uri) {
+  const m = uri.match(/^file:\/\/([^/]*)(\/.*)$/);
+  if (!m) return uri;
+  return decodeURIComponent(m[2]);
+}
 connection.onInitialize((params) => {
-  if (params.rootUri) {
-    rootPath = params.rootUri.replace("file://", "");
-  } else if (params.rootPath) {
-    rootPath = params.rootPath;
+  const rootUri = params.workspaceFolders?.[0]?.uri ?? params.rootUri;
+  if (rootUri) {
+    rootPath = fileUriToPath(rootUri);
   }
   const customPrompts = discoverCustomPrompts();
   const overrideNames = new Set(customPrompts.map((p) => p.name));
@@ -9605,7 +9654,9 @@ connection.onInitialize((params) => {
     ...customPrompts
   ];
   allSkills = discoverSkills(rootPath);
-  allPlugins = discoverPlugins();
+  void discoverPlugins().then((plugins) => {
+    allPlugins = plugins;
+  });
   return {
     capabilities: {
       textDocumentSync: import_node2.TextDocumentSyncKind.Incremental,

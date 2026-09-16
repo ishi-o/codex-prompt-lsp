@@ -27,11 +27,16 @@ let allCommands: SlashCommand[] = [];
 let allSkills: Skill[] = [];
 let allPlugins: Plugin[] = [];
 
+function fileUriToPath(uri: string): string {
+  const m = uri.match(/^file:\/\/([^/]*)(\/.*)$/);
+  if (!m) return uri;
+  return decodeURIComponent(m[2]);
+}
+
 connection.onInitialize((params): InitializeResult => {
-  if (params.rootUri) {
-    rootPath = params.rootUri.replace("file://", "");
-  } else if (params.rootPath) {
-    rootPath = params.rootPath;
+  const rootUri = params.workspaceFolders?.[0]?.uri ?? params.rootUri;
+  if (rootUri) {
+    rootPath = fileUriToPath(rootUri);
   }
 
   // Custom prompts override built-ins with the same name.
@@ -43,7 +48,11 @@ connection.onInitialize((params): InitializeResult => {
   ];
 
   allSkills = discoverSkills(rootPath);
-  allPlugins = discoverPlugins();
+  // Async so a hung Codex CLI can't block initialize; plugin completions
+  // stay empty until it resolves.
+  void discoverPlugins().then((plugins) => {
+    allPlugins = plugins;
+  });
 
   return {
     capabilities: {

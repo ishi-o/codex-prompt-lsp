@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { spawnSync } from "child_process";
+import { spawn } from "child_process";
 import { SlashCommand } from "./commands";
 
 /** Resolve $CODEX_HOME, defaulting to ~/.codex as Codex itself does. */
@@ -146,29 +146,49 @@ export interface Plugin {
 }
 
 /**
- * Run `codex plugin list --json` and return installed plugins.
+ * Run `codex plugin list --json` and resolve installed plugins.
  * `@plugin` mentions in the composer target installed plugins.
- * Falls back to an empty list if the CLI is unavailable.
+ * Resolves to an empty list if the CLI is unavailable, exits non-zero, or
+ * times out.
  */
-export function discoverPlugins(): Plugin[] {
-  try {
-    const result = spawnSync("codex", ["plugin", "list", "--json"], {
-      encoding: "utf8",
-      timeout: 3000,
+export function discoverPlugins(): Promise<Plugin[]> {
+  return new Promise((resolve) => {
+    const child = spawn("codex", ["plugin", "list", "--json"], {
+      stdio: ["ignore", "pipe", "ignore"],
     });
-    if (result.status !== 0 || !result.stdout) return [];
-    const raw = JSON.parse(result.stdout);
-    const installed: Array<Record<string, unknown>> = raw.installed ?? [];
-    return installed.map((p) => {
-      const id = String(p.id ?? p.name ?? "");
-      const display = String(p.display_name ?? p.name ?? id);
-      return {
-        name: display || id.split("@")[0],
-        id,
-        description: String(p.description ?? p.short_description ?? ""),
-      };
+    let stdout = "";
+    const timer = setTimeout(() => {
+      child.kill();
+      resolve([]);
+    }, 3000);
+
+    child.stdout?.on("data", (chunk) => {
+      stdout += chunk;
     });
-  } catch {
-    return [];
-  }
+    child.on("error", () => {
+      clearTimeout(timer);
+      resolve([]);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      if (code !== 0 || !stdout) return resolve([]);
+      try {
+        const raw = JSON.parse(stdout);
+        const installed: Array<Record<string, unknown>> = raw.installed ?? [];
+        resolve(
+          installed.map((p) => {
+            const id = String(p.id ?? p.name ?? "");
+            const display = String(p.display_name ?? p.name ?? id);
+            return {
+              name: display || id.split("@")[0],
+              id,
+              description: String(p.description ?? p.short_description ?? ""),
+            };
+          }),
+        );
+      } catch {
+        resolve([]);
+      }
+    });
+  });
 }
