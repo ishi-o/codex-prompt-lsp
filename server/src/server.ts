@@ -34,7 +34,7 @@ function fileUriToPath(uri: string): string {
 }
 
 connection.onInitialize((params): InitializeResult => {
-  const rootUri = params.workspaceFolders?.[0]?.uri ?? params.rootUri;
+  const rootUri = params.workspaceFolders?.[0]?.uri;
   if (rootUri) {
     rootPath = fileUriToPath(rootUri);
   }

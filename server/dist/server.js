@@ -9515,7 +9515,7 @@ function parseFrontmatter(content) {
   }
   return result;
 }
-function* walkSkillFiles(dir) {
+function* walkSkillFiles(dir, visitedRealPaths = /* @__PURE__ */ new Set()) {
   let entries;
   try {
     entries = fs2.readdirSync(dir, { withFileTypes: true });
@@ -9524,9 +9524,23 @@ function* walkSkillFiles(dir) {
   }
   for (const entry of entries) {
     const fullPath = path2.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      yield* walkSkillFiles(fullPath);
-    } else if (entry.isFile() && entry.name === "SKILL.md") {
+    let info;
+    try {
+      info = fs2.statSync(fullPath);
+    } catch {
+      continue;
+    }
+    if (info.isDirectory()) {
+      let realPath;
+      try {
+        realPath = fs2.realpathSync(fullPath);
+      } catch {
+        continue;
+      }
+      if (visitedRealPaths.has(realPath)) continue;
+      visitedRealPaths.add(realPath);
+      yield* walkSkillFiles(fullPath, visitedRealPaths);
+    } else if (info.isFile() && entry.name === "SKILL.md") {
       yield fullPath;
     }
   }
@@ -9643,7 +9657,7 @@ function fileUriToPath(uri) {
   return decodeURIComponent(m[2]);
 }
 connection.onInitialize((params) => {
-  const rootUri = params.workspaceFolders?.[0]?.uri ?? params.rootUri;
+  const rootUri = params.workspaceFolders?.[0]?.uri;
   if (rootUri) {
     rootPath = fileUriToPath(rootUri);
   }

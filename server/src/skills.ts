@@ -30,7 +30,10 @@ function parseFrontmatter(content: string): Record<string, string> | null {
 }
 
 /** Walk a directory recursively, yielding SKILL.md file paths. */
-function* walkSkillFiles(dir: string): Generator<string> {
+function* walkSkillFiles(
+  dir: string,
+  visitedRealPaths = new Set<string>(),
+): Generator<string> {
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -39,9 +42,25 @@ function* walkSkillFiles(dir: string): Generator<string> {
   }
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      yield* walkSkillFiles(fullPath);
-    } else if (entry.isFile() && entry.name === "SKILL.md") {
+
+    let info: fs.Stats;
+    try {
+      info = fs.statSync(fullPath);
+    } catch {
+      continue;
+    }
+
+    if (info.isDirectory()) {
+      let realPath: string;
+      try {
+        realPath = fs.realpathSync(fullPath);
+      } catch {
+        continue;
+      }
+      if (visitedRealPaths.has(realPath)) continue;
+      visitedRealPaths.add(realPath);
+      yield* walkSkillFiles(fullPath, visitedRealPaths);
+    } else if (info.isFile() && entry.name === "SKILL.md") {
       yield fullPath;
     }
   }
