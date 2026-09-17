@@ -9,12 +9,12 @@ vim.bo[buf].filetype = "markdown"
 require("nvim-codex-lsp").setup()
 vim.wait(5000, function()
   return vim.bo[buf].filetype == "markdown.codex"
-    and #vim.lsp.get_clients({ bufnr = buf, name = "codex_lsp" }) == 1
+    and #vim.lsp.get_clients({ bufnr = buf, name = "codex-prompt" }) == 1
     and vim.fn.maparg("<BS>", "i", false, true).desc == "Delete a Codex mention as one token"
 end)
 
 assert(vim.bo[buf].filetype == "markdown.codex")
-local clients = vim.lsp.get_clients({ bufnr = buf, name = "codex_lsp" })
+local clients = vim.lsp.get_clients({ bufnr = buf, name = "codex-prompt" })
 assert(#clients == 1)
 assert(type(vim.tbl_get(clients[1].server_capabilities, "experimental", "codexCompletionTokens")) == "table")
 assert(vim.fn.maparg("<BS>", "i", false, true).desc == "Delete a Codex mention as one token")
@@ -24,11 +24,11 @@ vim.api.nvim_set_current_buf(input_buf)
 vim.api.nvim_buf_set_name(input_buf, "mini-codex://input")
 vim.bo[input_buf].filetype = "markdown.codex"
 vim.wait(5000, function()
-  return #vim.lsp.get_clients({ bufnr = input_buf, name = "codex_lsp" }) == 1
+  return #vim.lsp.get_clients({ bufnr = input_buf, name = "codex-prompt" }) == 1
     and vim.fn.maparg("<BS>", "i", false, true).desc == "Delete a Codex mention as one token"
 end)
 
-assert(#vim.lsp.get_clients({ bufnr = input_buf, name = "codex_lsp" }) == 1)
+assert(#vim.lsp.get_clients({ bufnr = input_buf, name = "codex-prompt" }) == 1)
 assert(vim.fn.maparg("<BS>", "i", false, true).desc == "Delete a Codex mention as one token")
 
 print("startup buffer tests passed")

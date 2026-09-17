@@ -1,0 +1,16 @@
+[
+  {
+    "name": "codex-prompt-lsp",
+    "description": "Language server for Codex prompt completions.",
+    "homepage": "https://github.com/ishi-o/codex-prompt-lsp",
+    "licenses": ["MIT"],
+    "languages": ["Markdown"],
+    "categories": ["LSP"],
+    "source": {
+      "id": "pkg:npm/codex-prompt-lsp@0.1.0"
+    },
+    "bin": {
+      "codex-prompt-lsp": "npm:codex-prompt-lsp"
+    }
+  }
+]

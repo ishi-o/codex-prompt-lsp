@@ -1,4 +1,4 @@
-# nvim-codex-lsp
+# codex-prompt-lsp
 
 LSP-powered completions for the [Codex CLI](https://developers.openai.com/codex/cli) chat input.
 
@@ -18,6 +18,8 @@ markdown files) and attaches a small LSP server that provides:
 - **Server-side fuzzy filtering** — slash commands, skills, plugins, and files
   are filtered and ranked by the LSP server, so the editor does not need its
   own fuzzy-completion capability
+- **Editor clients** — Neovim plugin and VS Code extension
+- **Distribution** — self-contained npm executable and Mason package
 - **Atomic completion deletion** — pressing Backspace at the end of an exact
   `$skill` or `@plugin` completion removes the entire token; incomplete prefixes
   continue to delete one character at a time
@@ -56,6 +58,49 @@ Its runtime libraries — including the pure TypeScript `fzf` matcher — are
 embedded in that bundle, so plugin users do not run `npm install` or install
 any external command-line search tool.
 
+## VS Code
+
+The `vscode/` directory contains the VS Code client. Build and package its
+self-contained VSIX with:
+
+```
+make package-vscode
+```
+
+The extension detects matching files under `$CODEX_HOME` and project `.codex`
+directories. It requires the `markdown` language ID and `.md` extension by
+default, so ordinary Markdown files are not attached. It provides the same
+completions, hover information, mention highlighting, and atomic Backspace
+behavior as the Neovim client. Detection and editor-only features can be
+configured independently, and advanced targets can be added with
+`codexPromptLsp.documentSelectors`.
+
+## Mason
+
+The repository includes a Mason registry manifest for the server:
+
+```lua
+require("mason").setup({
+  registries = {
+    "github:ishi-o/codex-prompt-lsp",
+    "github:mason-org/mason-registry",
+  },
+})
+```
+
+After the npm package is published, install it with `:MasonInstall codex-prompt-lsp`.
+
+Mason installs the editor-neutral server only; it does not install this
+Neovim plugin. With Mason alone, you must configure an LSP client yourself to
+launch `codex-prompt-lsp --stdio`. That provides the server features: slash
+commands, skills, unified file/plugin/skill mentions, fuzzy filtering, hover,
+and completion insertion semantics.
+
+Installing this plugin is still required for automatic Codex buffer detection
+and attachment, `markdown.codex` filetype setup, atomic Backspace deletion,
+and Codex mention highlighting. The plugin currently uses its bundled server
+and does not automatically prefer a Mason-installed executable.
+
 ## Configuration
 
 ```lua
@@ -71,7 +116,9 @@ require("nvim-codex-lsp").setup({
 
 The LSP server and buffer-local features attach based only on the
 `markdown.codex` filetype; they do not inspect the buffer path or URI. This
-supports integrations such as [`mini.codex`](https://github.com/ishi-o/mini.codex), which sets that filetype on its `mini-codex://input` buffer.
+also supports integrations that set that filetype directly.
+
+The attached LSP client is named `codex-prompt` in both Neovim and VS Code.
 
 For convenience, the plugin automatically assigns `markdown.codex` to files
 that match any of:

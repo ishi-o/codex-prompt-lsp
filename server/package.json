@@ -1,18 +1,24 @@
 {
-  "name": "codex-lsp-server",
+  "name": "codex-prompt-lsp",
   "version": "0.1.0",
-  "private": true,
+  "description": "Language server for Codex prompt completions",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ishi-o/codex-prompt-lsp.git"
+  },
+  "bin": {
+    "codex-prompt-lsp": "./bin/codex-prompt-lsp.js"
+  },
+  "files": [
+    "bin",
+    "dist/server.js"
+  ],
   "scripts": {
     "build": "node esbuild.config.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src *.js",
     "format": "prettier --write src *.js"
-  },
-  "dependencies": {
-    "fzf": "^0.5.2",
-    "vscode-languageserver": "^9.0.0",
-    "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -21,6 +27,9 @@
     "eslint": "^9.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.6.0",
-    "typescript-eslint": "^8.0.0"
+    "typescript-eslint": "^8.0.0",
+    "fzf": "^0.5.2",
+    "vscode-languageserver": "^9.0.0",
+    "vscode-languageserver-textdocument": "^1.0.12"
   }
 }

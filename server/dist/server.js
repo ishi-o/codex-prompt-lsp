@@ -9102,6 +9102,9 @@ function getWellformedEdit(textEdit) {
   return textEdit;
 }
 
+// src/server.ts
+var import_node_url = require("node:url");
+
 // src/completion.ts
 var import_node = __toESM(require_node3());
 var fs = __toESM(require("fs"));
@@ -10730,15 +10733,10 @@ var rootPath = process.cwd();
 var allCommands = [];
 var allSkills = [];
 var allPlugins = [];
-function fileUriToPath(uri) {
-  const m = uri.match(/^file:\/\/([^/]*)(\/.*)$/);
-  if (!m) return uri;
-  return decodeURIComponent(m[2]);
-}
 connection.onInitialize((params) => {
   const rootUri = params.workspaceFolders?.[0]?.uri;
-  if (rootUri) {
-    rootPath = fileUriToPath(rootUri);
+  if (rootUri?.startsWith("file:")) {
+    rootPath = (0, import_node_url.fileURLToPath)(rootUri);
   }
   const customPrompts = discoverCustomPrompts();
   const overrideNames = new Set(customPrompts.map((p) => p.name));
