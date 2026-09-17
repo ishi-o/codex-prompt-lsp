@@ -3081,7 +3081,7 @@ var require_main = __commonJS({
     exports2.createMessageConnection = exports2.createServerSocketTransport = exports2.createClientSocketTransport = exports2.createServerPipeTransport = exports2.createClientPipeTransport = exports2.generateRandomPipeName = exports2.StreamMessageWriter = exports2.StreamMessageReader = exports2.SocketMessageWriter = exports2.SocketMessageReader = exports2.PortMessageWriter = exports2.PortMessageReader = exports2.IPCMessageWriter = exports2.IPCMessageReader = void 0;
     var ril_1 = require_ril();
     ril_1.default.install();
-    var path3 = require("path");
+    var path4 = require("path");
     var os2 = require("os");
     var crypto_1 = require("crypto");
     var net_1 = require("net");
@@ -3217,9 +3217,9 @@ var require_main = __commonJS({
       }
       let result;
       if (XDG_RUNTIME_DIR) {
-        result = path3.join(XDG_RUNTIME_DIR, `vscode-ipc-${randomSuffix}.sock`);
+        result = path4.join(XDG_RUNTIME_DIR, `vscode-ipc-${randomSuffix}.sock`);
       } else {
-        result = path3.join(os2.tmpdir(), `vscode-${randomSuffix}.sock`);
+        result = path4.join(os2.tmpdir(), `vscode-${randomSuffix}.sock`);
       }
       const limit = safeIpcPathLengths.get(process.platform);
       if (limit !== void 0 && result.length > limit) {
@@ -3371,8 +3371,8 @@ var require_main2 = __commonJS({
         }
         uinteger2.is = is;
       })(uinteger || (exports3.uinteger = uinteger = {}));
-      var Position2;
-      (function(Position3) {
+      var Position3;
+      (function(Position4) {
         function create(line, character) {
           if (line === Number.MAX_VALUE) {
             line = uinteger.MAX_VALUE;
@@ -3382,43 +3382,43 @@ var require_main2 = __commonJS({
           }
           return { line, character };
         }
-        Position3.create = create;
+        Position4.create = create;
         function is(value) {
           var candidate = value;
           return Is.objectLiteral(candidate) && Is.uinteger(candidate.line) && Is.uinteger(candidate.character);
         }
-        Position3.is = is;
-      })(Position2 || (exports3.Position = Position2 = {}));
-      var Range;
-      (function(Range2) {
+        Position4.is = is;
+      })(Position3 || (exports3.Position = Position3 = {}));
+      var Range2;
+      (function(Range3) {
         function create(one, two, three, four) {
           if (Is.uinteger(one) && Is.uinteger(two) && Is.uinteger(three) && Is.uinteger(four)) {
-            return { start: Position2.create(one, two), end: Position2.create(three, four) };
-          } else if (Position2.is(one) && Position2.is(two)) {
+            return { start: Position3.create(one, two), end: Position3.create(three, four) };
+          } else if (Position3.is(one) && Position3.is(two)) {
             return { start: one, end: two };
           } else {
             throw new Error("Range#create called with invalid arguments[".concat(one, ", ").concat(two, ", ").concat(three, ", ").concat(four, "]"));
           }
         }
-        Range2.create = create;
+        Range3.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Position2.is(candidate.start) && Position2.is(candidate.end);
+          return Is.objectLiteral(candidate) && Position3.is(candidate.start) && Position3.is(candidate.end);
         }
-        Range2.is = is;
-      })(Range || (exports3.Range = Range = {}));
-      var Location;
-      (function(Location2) {
+        Range3.is = is;
+      })(Range2 || (exports3.Range = Range2 = {}));
+      var Location2;
+      (function(Location3) {
         function create(uri, range) {
           return { uri, range };
         }
-        Location2.create = create;
+        Location3.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Range.is(candidate.range) && (Is.string(candidate.uri) || Is.undefined(candidate.uri));
+          return Is.objectLiteral(candidate) && Range2.is(candidate.range) && (Is.string(candidate.uri) || Is.undefined(candidate.uri));
         }
-        Location2.is = is;
-      })(Location || (exports3.Location = Location = {}));
+        Location3.is = is;
+      })(Location2 || (exports3.Location = Location2 = {}));
       var LocationLink;
       (function(LocationLink2) {
         function create(targetUri, targetRange, targetSelectionRange, originSelectionRange) {
@@ -3427,7 +3427,7 @@ var require_main2 = __commonJS({
         LocationLink2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Range.is(candidate.targetRange) && Is.string(candidate.targetUri) && Range.is(candidate.targetSelectionRange) && (Range.is(candidate.originSelectionRange) || Is.undefined(candidate.originSelectionRange));
+          return Is.objectLiteral(candidate) && Range2.is(candidate.targetRange) && Is.string(candidate.targetUri) && Range2.is(candidate.targetSelectionRange) && (Range2.is(candidate.originSelectionRange) || Is.undefined(candidate.originSelectionRange));
         }
         LocationLink2.is = is;
       })(LocationLink || (exports3.LocationLink = LocationLink = {}));
@@ -3459,7 +3459,7 @@ var require_main2 = __commonJS({
         ColorInformation2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Range.is(candidate.range) && Color.is(candidate.color);
+          return Is.objectLiteral(candidate) && Range2.is(candidate.range) && Color.is(candidate.color);
         }
         ColorInformation2.is = is;
       })(ColorInformation || (exports3.ColorInformation = ColorInformation = {}));
@@ -3524,7 +3524,7 @@ var require_main2 = __commonJS({
         DiagnosticRelatedInformation2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.defined(candidate) && Location.is(candidate.location) && Is.string(candidate.message);
+          return Is.defined(candidate) && Location2.is(candidate.location) && Is.string(candidate.message);
         }
         DiagnosticRelatedInformation2.is = is;
       })(DiagnosticRelatedInformation || (exports3.DiagnosticRelatedInformation = DiagnosticRelatedInformation = {}));
@@ -3570,7 +3570,7 @@ var require_main2 = __commonJS({
         function is(value) {
           var _a;
           var candidate = value;
-          return Is.defined(candidate) && Range.is(candidate.range) && Is.string(candidate.message) && (Is.number(candidate.severity) || Is.undefined(candidate.severity)) && (Is.integer(candidate.code) || Is.string(candidate.code) || Is.undefined(candidate.code)) && (Is.undefined(candidate.codeDescription) || Is.string((_a = candidate.codeDescription) === null || _a === void 0 ? void 0 : _a.href)) && (Is.string(candidate.source) || Is.undefined(candidate.source)) && (Is.undefined(candidate.relatedInformation) || Is.typedArray(candidate.relatedInformation, DiagnosticRelatedInformation.is));
+          return Is.defined(candidate) && Range2.is(candidate.range) && Is.string(candidate.message) && (Is.number(candidate.severity) || Is.undefined(candidate.severity)) && (Is.integer(candidate.code) || Is.string(candidate.code) || Is.undefined(candidate.code)) && (Is.undefined(candidate.codeDescription) || Is.string((_a = candidate.codeDescription) === null || _a === void 0 ? void 0 : _a.href)) && (Is.string(candidate.source) || Is.undefined(candidate.source)) && (Is.undefined(candidate.relatedInformation) || Is.typedArray(candidate.relatedInformation, DiagnosticRelatedInformation.is));
         }
         Diagnostic2.is = is;
       })(Diagnostic || (exports3.Diagnostic = Diagnostic = {}));
@@ -3610,7 +3610,7 @@ var require_main2 = __commonJS({
         TextEdit3.del = del;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Is.string(candidate.newText) && Range.is(candidate.range);
+          return Is.objectLiteral(candidate) && Is.string(candidate.newText) && Range2.is(candidate.range);
         }
         TextEdit3.is = is;
       })(TextEdit2 || (exports3.TextEdit = TextEdit2 = {}));
@@ -4154,7 +4154,7 @@ var require_main2 = __commonJS({
         InsertReplaceEdit2.create = create;
         function is(value) {
           var candidate = value;
-          return candidate && Is.string(candidate.newText) && Range.is(candidate.insert) && Range.is(candidate.replace);
+          return candidate && Is.string(candidate.newText) && Range2.is(candidate.insert) && Range2.is(candidate.replace);
         }
         InsertReplaceEdit2.is = is;
       })(InsertReplaceEdit || (exports3.InsertReplaceEdit = InsertReplaceEdit = {}));
@@ -4201,7 +4201,7 @@ var require_main2 = __commonJS({
       (function(Hover2) {
         function is(value) {
           var candidate = value;
-          return !!candidate && Is.objectLiteral(candidate) && (MarkupContent.is(candidate.contents) || MarkedString.is(candidate.contents) || Is.typedArray(candidate.contents, MarkedString.is)) && (value.range === void 0 || Range.is(value.range));
+          return !!candidate && Is.objectLiteral(candidate) && (MarkupContent.is(candidate.contents) || MarkedString.is(candidate.contents) || Is.typedArray(candidate.contents, MarkedString.is)) && (value.range === void 0 || Range2.is(value.range));
         }
         Hover2.is = is;
       })(Hover || (exports3.Hover = Hover = {}));
@@ -4322,7 +4322,7 @@ var require_main2 = __commonJS({
         DocumentSymbol2.create = create;
         function is(value) {
           var candidate = value;
-          return candidate && Is.string(candidate.name) && Is.number(candidate.kind) && Range.is(candidate.range) && Range.is(candidate.selectionRange) && (candidate.detail === void 0 || Is.string(candidate.detail)) && (candidate.deprecated === void 0 || Is.boolean(candidate.deprecated)) && (candidate.children === void 0 || Array.isArray(candidate.children)) && (candidate.tags === void 0 || Array.isArray(candidate.tags));
+          return candidate && Is.string(candidate.name) && Is.number(candidate.kind) && Range2.is(candidate.range) && Range2.is(candidate.selectionRange) && (candidate.detail === void 0 || Is.string(candidate.detail)) && (candidate.deprecated === void 0 || Is.boolean(candidate.deprecated)) && (candidate.children === void 0 || Array.isArray(candidate.children)) && (candidate.tags === void 0 || Array.isArray(candidate.tags));
         }
         DocumentSymbol2.is = is;
       })(DocumentSymbol || (exports3.DocumentSymbol = DocumentSymbol = {}));
@@ -4399,7 +4399,7 @@ var require_main2 = __commonJS({
         CodeLens2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.defined(candidate) && Range.is(candidate.range) && (Is.undefined(candidate.command) || Command.is(candidate.command));
+          return Is.defined(candidate) && Range2.is(candidate.range) && (Is.undefined(candidate.command) || Command.is(candidate.command));
         }
         CodeLens2.is = is;
       })(CodeLens || (exports3.CodeLens = CodeLens = {}));
@@ -4423,7 +4423,7 @@ var require_main2 = __commonJS({
         DocumentLink2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.defined(candidate) && Range.is(candidate.range) && (Is.undefined(candidate.target) || Is.string(candidate.target));
+          return Is.defined(candidate) && Range2.is(candidate.range) && (Is.undefined(candidate.target) || Is.string(candidate.target));
         }
         DocumentLink2.is = is;
       })(DocumentLink || (exports3.DocumentLink = DocumentLink = {}));
@@ -4435,7 +4435,7 @@ var require_main2 = __commonJS({
         SelectionRange2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Range.is(candidate.range) && (candidate.parent === void 0 || SelectionRange2.is(candidate.parent));
+          return Is.objectLiteral(candidate) && Range2.is(candidate.range) && (candidate.parent === void 0 || SelectionRange2.is(candidate.parent));
         }
         SelectionRange2.is = is;
       })(SelectionRange || (exports3.SelectionRange = SelectionRange = {}));
@@ -4494,7 +4494,7 @@ var require_main2 = __commonJS({
         InlineValueText2.create = create;
         function is(value) {
           var candidate = value;
-          return candidate !== void 0 && candidate !== null && Range.is(candidate.range) && Is.string(candidate.text);
+          return candidate !== void 0 && candidate !== null && Range2.is(candidate.range) && Is.string(candidate.text);
         }
         InlineValueText2.is = is;
       })(InlineValueText || (exports3.InlineValueText = InlineValueText = {}));
@@ -4506,7 +4506,7 @@ var require_main2 = __commonJS({
         InlineValueVariableLookup2.create = create;
         function is(value) {
           var candidate = value;
-          return candidate !== void 0 && candidate !== null && Range.is(candidate.range) && Is.boolean(candidate.caseSensitiveLookup) && (Is.string(candidate.variableName) || candidate.variableName === void 0);
+          return candidate !== void 0 && candidate !== null && Range2.is(candidate.range) && Is.boolean(candidate.caseSensitiveLookup) && (Is.string(candidate.variableName) || candidate.variableName === void 0);
         }
         InlineValueVariableLookup2.is = is;
       })(InlineValueVariableLookup || (exports3.InlineValueVariableLookup = InlineValueVariableLookup = {}));
@@ -4518,7 +4518,7 @@ var require_main2 = __commonJS({
         InlineValueEvaluatableExpression2.create = create;
         function is(value) {
           var candidate = value;
-          return candidate !== void 0 && candidate !== null && Range.is(candidate.range) && (Is.string(candidate.expression) || candidate.expression === void 0);
+          return candidate !== void 0 && candidate !== null && Range2.is(candidate.range) && (Is.string(candidate.expression) || candidate.expression === void 0);
         }
         InlineValueEvaluatableExpression2.is = is;
       })(InlineValueEvaluatableExpression || (exports3.InlineValueEvaluatableExpression = InlineValueEvaluatableExpression = {}));
@@ -4530,7 +4530,7 @@ var require_main2 = __commonJS({
         InlineValueContext2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.defined(candidate) && Range.is(value.stoppedLocation);
+          return Is.defined(candidate) && Range2.is(value.stoppedLocation);
         }
         InlineValueContext2.is = is;
       })(InlineValueContext || (exports3.InlineValueContext = InlineValueContext = {}));
@@ -4551,7 +4551,7 @@ var require_main2 = __commonJS({
         InlayHintLabelPart2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.location === void 0 || Location.is(candidate.location)) && (candidate.command === void 0 || Command.is(candidate.command));
+          return Is.objectLiteral(candidate) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.location === void 0 || Location2.is(candidate.location)) && (candidate.command === void 0 || Command.is(candidate.command));
         }
         InlayHintLabelPart2.is = is;
       })(InlayHintLabelPart || (exports3.InlayHintLabelPart = InlayHintLabelPart = {}));
@@ -4567,7 +4567,7 @@ var require_main2 = __commonJS({
         InlayHint2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Position2.is(candidate.position) && (Is.string(candidate.label) || Is.typedArray(candidate.label, InlayHintLabelPart.is)) && (candidate.kind === void 0 || InlayHintKind.is(candidate.kind)) && candidate.textEdits === void 0 || Is.typedArray(candidate.textEdits, TextEdit2.is) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.paddingLeft === void 0 || Is.boolean(candidate.paddingLeft)) && (candidate.paddingRight === void 0 || Is.boolean(candidate.paddingRight));
+          return Is.objectLiteral(candidate) && Position3.is(candidate.position) && (Is.string(candidate.label) || Is.typedArray(candidate.label, InlayHintLabelPart.is)) && (candidate.kind === void 0 || InlayHintKind.is(candidate.kind)) && candidate.textEdits === void 0 || Is.typedArray(candidate.textEdits, TextEdit2.is) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.paddingLeft === void 0 || Is.boolean(candidate.paddingLeft)) && (candidate.paddingRight === void 0 || Is.boolean(candidate.paddingRight));
         }
         InlayHint2.is = is;
       })(InlayHint || (exports3.InlayHint = InlayHint = {}));
@@ -4756,7 +4756,7 @@ var require_main2 = __commonJS({
             var lineOffsets = this.getLineOffsets();
             var low = 0, high = lineOffsets.length;
             if (high === 0) {
-              return Position2.create(0, offset);
+              return Position3.create(0, offset);
             }
             while (low < high) {
               var mid = Math.floor((low + high) / 2);
@@ -4767,7 +4767,7 @@ var require_main2 = __commonJS({
               }
             }
             var line = low - 1;
-            return Position2.create(line, offset - lineOffsets[line]);
+            return Position3.create(line, offset - lineOffsets[line]);
           };
           FullTextDocument3.prototype.offsetAt = function(position) {
             var lineOffsets = this.getLineOffsets();
@@ -8309,7 +8309,7 @@ var require_files = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.resolveModulePath = exports2.FileSystem = exports2.resolveGlobalYarnPath = exports2.resolveGlobalNodePath = exports2.resolve = exports2.uriToFilePath = void 0;
     var url = require("url");
-    var path3 = require("path");
+    var path4 = require("path");
     var fs3 = require("fs");
     var child_process_1 = require("child_process");
     function uriToFilePath(uri) {
@@ -8328,7 +8328,7 @@ var require_files = __commonJS({
           segments.shift();
         }
       }
-      return path3.normalize(segments.join("/"));
+      return path4.normalize(segments.join("/"));
     }
     exports2.uriToFilePath = uriToFilePath;
     function isWindows() {
@@ -8359,7 +8359,7 @@ var require_files = __commonJS({
         Object.keys(env).forEach((key) => newEnv[key] = env[key]);
         if (nodePath && fs3.existsSync(nodePath)) {
           if (newEnv[nodePathKey]) {
-            newEnv[nodePathKey] = nodePath + path3.delimiter + newEnv[nodePathKey];
+            newEnv[nodePathKey] = nodePath + path4.delimiter + newEnv[nodePathKey];
           } else {
             newEnv[nodePathKey] = nodePath;
           }
@@ -8432,9 +8432,9 @@ var require_files = __commonJS({
         }
         if (prefix.length > 0) {
           if (isWindows()) {
-            return path3.join(prefix, "node_modules");
+            return path4.join(prefix, "node_modules");
           } else {
-            return path3.join(prefix, "lib", "node_modules");
+            return path4.join(prefix, "lib", "node_modules");
           }
         }
         return void 0;
@@ -8474,7 +8474,7 @@ var require_files = __commonJS({
           try {
             let yarn = JSON.parse(line);
             if (yarn.type === "log") {
-              return path3.join(yarn.data, "node_modules");
+              return path4.join(yarn.data, "node_modules");
             }
           } catch (e) {
           }
@@ -8504,17 +8504,17 @@ var require_files = __commonJS({
       FileSystem2.isCaseSensitive = isCaseSensitive;
       function isParent(parent, child) {
         if (isCaseSensitive()) {
-          return path3.normalize(child).indexOf(path3.normalize(parent)) === 0;
+          return path4.normalize(child).indexOf(path4.normalize(parent)) === 0;
         } else {
-          return path3.normalize(child).toLowerCase().indexOf(path3.normalize(parent).toLowerCase()) === 0;
+          return path4.normalize(child).toLowerCase().indexOf(path4.normalize(parent).toLowerCase()) === 0;
         }
       }
       FileSystem2.isParent = isParent;
     })(FileSystem || (exports2.FileSystem = FileSystem = {}));
     function resolveModulePath(workspaceRoot, moduleName, nodePath, tracer) {
       if (nodePath) {
-        if (!path3.isAbsolute(nodePath)) {
-          nodePath = path3.join(workspaceRoot, nodePath);
+        if (!path4.isAbsolute(nodePath)) {
+          nodePath = path4.join(workspaceRoot, nodePath);
         }
         return resolve(moduleName, nodePath, nodePath, tracer).then((value) => {
           if (FileSystem.isParent(nodePath, value)) {
@@ -8876,7 +8876,7 @@ var require_node3 = __commonJS({
 });
 
 // src/server.ts
-var import_node2 = __toESM(require_node3());
+var import_node3 = __toESM(require_node3());
 
 // node_modules/vscode-languageserver-textdocument/lib/esm/main.js
 var FullTextDocument = class _FullTextDocument {
@@ -9103,7 +9103,7 @@ function getWellformedEdit(textEdit) {
 }
 
 // src/server.ts
-var import_node_url = require("node:url");
+var import_node_url2 = require("node:url");
 
 // src/completion.ts
 var import_node = __toESM(require_node3());
@@ -10073,24 +10073,24 @@ var Fzf = class {
 };
 
 // src/completion.ts
-function getTriggerContext(lineText, isFirstLine) {
-  const slashMatch = isFirstLine ? lineText.match(/^(\/[\w-]*)$/) : null;
+function getTriggerContext(lineText2, isFirstLine) {
+  const slashMatch = isFirstLine ? lineText2.match(/^(\/[\w-]*)$/) : null;
   if (slashMatch) {
     return {
       type: "slash" /* Slash */,
       prefix: slashMatch[1],
-      start: lineText.length - slashMatch[1].length
+      start: lineText2.length - slashMatch[1].length
     };
   }
-  const skillMatch = lineText.match(/(?:^|\s)\$([\w-]*)$/);
+  const skillMatch = lineText2.match(/(?:^|\s)\$([\w-]*)$/);
   if (skillMatch) {
     return {
       type: "skill" /* Skill */,
       prefix: skillMatch[1],
-      start: lineText.length - skillMatch[1].length - 1
+      start: lineText2.length - skillMatch[1].length - 1
     };
   }
-  const pluginMatch = lineText.match(/@(\S*)$/);
+  const pluginMatch = lineText2.match(/@(\S*)$/);
   if (pluginMatch) {
     return {
       type: "mention" /* Mention */,
@@ -10363,11 +10363,11 @@ function getMentionCompletions(prefix, position, tokenStart, rootPath2, skills, 
   ];
 }
 async function getCompletions(doc, position, rootPath2, commands, skills, plugins) {
-  const lineText = doc.getText({
+  const lineText2 = doc.getText({
     start: { line: position.line, character: 0 },
     end: position
   });
-  const ctx = getTriggerContext(lineText, position.line === 0);
+  const ctx = getTriggerContext(lineText2, position.line === 0);
   if (ctx.type === "slash" /* Slash */) {
     return {
       isIncomplete: true,
@@ -10396,6 +10396,68 @@ async function getCompletions(doc, position, rootPath2, commands, skills, plugin
   return { isIncomplete: false, items: [] };
 }
 
+// src/definition.ts
+var import_node2 = __toESM(require_node3());
+var import_node_url = require("node:url");
+var path2 = __toESM(require("node:path"));
+var PASTED_CONTENT_PATTERN = /\[Pasted Content #\d+ \d+ lines \d+ chars\]/g;
+function lineText(doc, line) {
+  return doc.getText({
+    start: { line, character: 0 },
+    end: { line: line + 1, character: 0 }
+  });
+}
+function pastedContentRangeAt(doc, position) {
+  const line = lineText(doc, position.line);
+  for (const match of line.matchAll(PASTED_CONTENT_PATTERN)) {
+    const start = match.index;
+    if (start === void 0) continue;
+    const end = start + match[0].length;
+    if (start <= position.character && position.character < end) {
+      return import_node2.Range.create(position.line, start, position.line, end);
+    }
+  }
+  return null;
+}
+async function resolvePastedContent(connection2, doc, position) {
+  if (!pastedContentRangeAt(doc, position)) return null;
+  try {
+    return await connection2.sendRequest(
+      "codex/resolvePastedContent",
+      { textDocument: { uri: doc.uri }, position }
+    );
+  } catch {
+    return null;
+  }
+}
+function skillAt(doc, position, skills) {
+  const line = lineText(doc, position.line);
+  for (const skill of skills) {
+    const token = "$" + skill.name;
+    let start = line.indexOf(token);
+    while (start !== -1) {
+      const end = start + token.length;
+      if (start <= position.character && position.character < end) {
+        return skill;
+      }
+      start = line.indexOf(token, end);
+    }
+  }
+  return void 0;
+}
+async function getDefinition(connection2, doc, position, skills, pastedContent2) {
+  if (pastedContent2) {
+    const pasted = await resolvePastedContent(connection2, doc, position);
+    if (pasted) return import_node2.Location.create(pasted.uri, pasted.range);
+  }
+  const skill = skillAt(doc, position, skills);
+  if (!skill) return null;
+  return import_node2.Location.create(
+    (0, import_node_url.pathToFileURL)(path2.join(skill.dir, "SKILL.md")).toString(),
+    import_node2.Range.create(0, 0, 0, 0)
+  );
+}
+
 // src/hover.ts
 var TOKEN_CHARACTER = /[-\w/$@]/;
 function getWordRange(doc, position) {
@@ -10421,6 +10483,18 @@ function findNamed(items, name, getName) {
 function markdownHover(value, range) {
   return {
     contents: { kind: "markdown", value },
+    range
+  };
+}
+async function getPastedContentHover(connection2, doc, position) {
+  const range = pastedContentRangeAt(doc, position);
+  if (!range) return null;
+  const pasted = await resolvePastedContent(connection2, doc, position);
+  return {
+    contents: {
+      kind: "plaintext",
+      value: pasted?.contents ?? doc.getText(range)
+    },
     range
   };
 }
@@ -10617,11 +10691,11 @@ var BUILTIN_COMMANDS = [
 
 // src/skills.ts
 var fs2 = __toESM(require("fs"));
-var path2 = __toESM(require("path"));
+var path3 = __toESM(require("path"));
 var os = __toESM(require("os"));
 var import_child_process = require("child_process");
 function codexHome() {
-  return process.env.CODEX_HOME || path2.join(os.homedir(), ".codex");
+  return process.env.CODEX_HOME || path3.join(os.homedir(), ".codex");
 }
 function parseFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -10644,7 +10718,7 @@ function* walkSkillFiles(dir, visitedRealPaths = /* @__PURE__ */ new Set()) {
     return;
   }
   for (const entry of entries) {
-    const fullPath = path2.join(dir, entry.name);
+    const fullPath = path3.join(dir, entry.name);
     let info;
     try {
       info = fs2.statSync(fullPath);
@@ -10671,9 +10745,9 @@ function discoverSkills(projectDir) {
   const seen = /* @__PURE__ */ new Set();
   const roots = [];
   if (projectDir) {
-    roots.push(path2.join(projectDir, ".codex", "skills"));
+    roots.push(path3.join(projectDir, ".codex", "skills"));
   }
-  roots.push(path2.join(codexHome(), "skills"));
+  roots.push(path3.join(codexHome(), "skills"));
   for (const root of roots) {
     for (const filePath of walkSkillFiles(root)) {
       let content;
@@ -10683,20 +10757,20 @@ function discoverSkills(projectDir) {
         continue;
       }
       const fm = parseFrontmatter(content);
-      const name = fm?.name ?? path2.basename(path2.dirname(filePath));
+      const name = fm?.name ?? path3.basename(path3.dirname(filePath));
       if (!name || seen.has(name)) continue;
       seen.add(name);
       skills.push({
         name,
         description: fm?.description ?? "",
-        dir: path2.dirname(filePath)
+        dir: path3.dirname(filePath)
       });
     }
   }
   return skills;
 }
 function discoverCustomPrompts() {
-  const promptsDir = path2.join(codexHome(), "prompts");
+  const promptsDir = path3.join(codexHome(), "prompts");
   const prompts = [];
   let entries;
   try {
@@ -10708,11 +10782,11 @@ function discoverCustomPrompts() {
     if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
     let content;
     try {
-      content = fs2.readFileSync(path2.join(promptsDir, entry.name), "utf8");
+      content = fs2.readFileSync(path3.join(promptsDir, entry.name), "utf8");
     } catch {
       continue;
     }
-    const cmdName = "/" + path2.basename(entry.name, ".md");
+    const cmdName = "/" + path3.basename(entry.name, ".md");
     const desc = parseFrontmatter(content)?.description ?? "Custom prompt";
     prompts.push({
       name: cmdName,
@@ -10745,15 +10819,15 @@ function listDirectories(dir) {
   }
 }
 function findCachedPluginManifest(pluginName) {
-  if (!pluginName || path2.basename(pluginName) !== pluginName) return void 0;
-  const cacheRoot = path2.join(codexHome(), "plugins", "cache");
+  if (!pluginName || path3.basename(pluginName) !== pluginName) return void 0;
+  const cacheRoot = path3.join(codexHome(), "plugins", "cache");
   for (const marketplace of listDirectories(cacheRoot)) {
-    const pluginRoot = path2.join(cacheRoot, marketplace.name, pluginName);
+    const pluginRoot = path3.join(cacheRoot, marketplace.name, pluginName);
     const versions = listDirectories(pluginRoot).sort(
       (left, right) => right.name.localeCompare(left.name)
     );
     for (const version of versions) {
-      const manifestPath = path2.join(
+      const manifestPath = path3.join(
         pluginRoot,
         version.name,
         ".codex-plugin",
@@ -10888,13 +10962,14 @@ function discoverPlugins() {
 }
 
 // src/server.ts
-var connection = (0, import_node2.createConnection)(import_node2.ProposedFeatures.all);
-var documents = new import_node2.TextDocuments(TextDocument);
+var connection = (0, import_node3.createConnection)(import_node3.ProposedFeatures.all);
+var documents = new import_node3.TextDocuments(TextDocument);
 var TRIGGER_CHARACTERS = ["/", "$", "@"];
 var rootPath = process.cwd();
 var allCommands = [];
 var allSkills = [];
 var allPlugins = [];
+var pastedContent = true;
 function mergeCommands(customPrompts) {
   const overriddenNames = new Set(customPrompts.map((prompt) => prompt.name));
   return [
@@ -10909,21 +10984,23 @@ function completionTokens(skills, plugins) {
   ];
 }
 connection.onInitialize(async (params) => {
+  pastedContent = params.initializationOptions?.pastedContent !== false;
   const rootUri = params.workspaceFolders?.[0]?.uri;
   if (rootUri?.startsWith("file:")) {
-    rootPath = (0, import_node_url.fileURLToPath)(rootUri);
+    rootPath = (0, import_node_url2.fileURLToPath)(rootUri);
   }
   allCommands = mergeCommands(discoverCustomPrompts());
   allSkills = discoverSkills(rootPath);
   allPlugins = await discoverPlugins();
   return {
     capabilities: {
-      textDocumentSync: import_node2.TextDocumentSyncKind.Incremental,
+      textDocumentSync: import_node3.TextDocumentSyncKind.Incremental,
       completionProvider: {
         triggerCharacters: TRIGGER_CHARACTERS,
         resolveProvider: true
       },
       hoverProvider: true,
+      definitionProvider: true,
       experimental: {
         codexCompletionTokens: completionTokens(allSkills, allPlugins)
       }
@@ -10989,10 +11066,29 @@ Plugin ID: \`${plugin.id}\``
   }
   return item;
 });
-connection.onHover((params) => {
+connection.onHover(async (params) => {
   const doc = documents.get(params.textDocument.uri);
   if (!doc) return null;
+  if (pastedContent) {
+    const pastedHover = await getPastedContentHover(
+      connection,
+      doc,
+      params.position
+    );
+    if (pastedHover) return pastedHover;
+  }
   return getHover(doc, params.position, allCommands, allSkills, allPlugins);
+});
+connection.onDefinition(async (params) => {
+  const doc = documents.get(params.textDocument.uri);
+  if (!doc) return null;
+  return getDefinition(
+    connection,
+    doc,
+    params.position,
+    allSkills,
+    pastedContent
+  );
 });
 documents.listen(connection);
 connection.listen();

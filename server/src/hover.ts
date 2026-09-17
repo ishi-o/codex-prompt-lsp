@@ -1,7 +1,8 @@
-import { Hover, Position, Range } from "vscode-languageserver/node";
+import { Connection, Hover, Position, Range } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { SlashCommand } from "./commands";
 import { Skill, Plugin } from "./skills";
+import { pastedContentRangeAt, resolvePastedContent } from "./definition";
 
 const TOKEN_CHARACTER = /[-\w/$@]/;
 
@@ -42,6 +43,24 @@ function findNamed<T>(
 function markdownHover(value: string, range: Range): Hover {
   return {
     contents: { kind: "markdown", value },
+    range,
+  };
+}
+
+export async function getPastedContentHover(
+  connection: Connection,
+  doc: TextDocument,
+  position: Position,
+): Promise<Hover | null> {
+  const range = pastedContentRangeAt(doc, position);
+  if (!range) return null;
+
+  const pasted = await resolvePastedContent(connection, doc, position);
+  return {
+    contents: {
+      kind: "plaintext",
+      value: pasted?.contents ?? doc.getText(range),
+    },
     range,
   };
 }

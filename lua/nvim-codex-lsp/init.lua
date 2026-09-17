@@ -4,6 +4,8 @@ M.config = {
   node_cmd = "node",
   atomic_backspace = true,
   atomic_move = true,
+  atomic_cursor = true,
+  pasted_content = true,
 }
 
 -- vim.fs.sep requires Neovim 0.12+; fall back to the platform separator.
@@ -40,11 +42,16 @@ end
 
 local function setup_buffer(buf, client)
   setup_syntax(buf)
-  if M.config.atomic_backspace or M.config.atomic_move then
+  if M.config.pasted_content then
+    require("nvim-codex-lsp.pasted").setup(buf)
+  end
+  if M.config.atomic_backspace or M.config.atomic_move or M.config.atomic_cursor or M.config.pasted_content then
     local tokens = vim.tbl_get(client.server_capabilities, "experimental", "codexCompletionTokens") or {}
     require("nvim-codex-lsp.atomic").setup(buf, tokens, {
       backspace = M.config.atomic_backspace,
       move = M.config.atomic_move,
+      cursor = M.config.atomic_cursor,
+      pasted_content = M.config.pasted_content,
     })
   end
 end
@@ -61,7 +68,7 @@ local function is_external_editor_buffer(filepath)
     and name:match("^%.tmp[%w]+%.md$") ~= nil
 end
 
----@param opts? {node_cmd?: string, atomic_backspace?: boolean, atomic_move?: boolean}
+---@param opts? {node_cmd?: string, atomic_backspace?: boolean, atomic_move?: boolean, atomic_cursor?: boolean, pasted_content?: boolean}
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", M.config, opts or {})
   vim.g.codex_lsp_configured = true
@@ -122,6 +129,13 @@ function M.setup(opts)
   vim.lsp.config("codex-prompt", {
     cmd = { M.config.node_cmd, server_js, "--stdio" },
     filetypes = { "markdown.codex" },
+    init_options = { pastedContent = M.config.pasted_content },
+    handlers = {
+      ["codex/resolvePastedContent"] = function(_, params, ctx)
+        local client = vim.lsp.get_client_by_id(ctx.client_id)
+        return client and require("nvim-codex-lsp.pasted").resolve(params, client) or nil
+      end,
+    },
     root_dir = function(_bufnr, on_dir)
       on_dir(vim.fn.getcwd())
     end,

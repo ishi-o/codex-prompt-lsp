@@ -83,7 +83,7 @@
         "codexPromptLsp.atomicMove": {
           "type": "boolean",
           "default": true,
-          "description": "Move across exact skill and plugin completion tokens with the left and right arrow keys."
+          "description": "Move across skill and plugin mentions with the left and right arrow keys."
         },
         "codexPromptLsp.highlightMentions": {
           "type": "boolean",

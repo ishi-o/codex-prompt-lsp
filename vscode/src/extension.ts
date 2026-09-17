@@ -17,6 +17,9 @@ let documentSelector: DocumentSelector = [];
 let completionTokens = new Set<string>();
 let restartPromise = Promise.resolve();
 
+const mentionBeforePattern = /(?:^|[^\w_])(\$[A-Za-z][A-Za-z0-9_-]*|@[A-Za-z0-9][A-Za-z0-9._/-]*)$/;
+const mentionAfterPattern = /^(\$[A-Za-z][A-Za-z0-9_-]*|@[A-Za-z0-9][A-Za-z0-9._/-]*)/;
+
 const slashDecoration = vscode.window.createTextEditorDecorationType({
   color: new vscode.ThemeColor("symbolIcon.functionForeground"),
 });
@@ -101,6 +104,12 @@ function captureCompletionTokens(
   }
 }
 
+function tokenContinuation(token: string): RegExp {
+  return token.startsWith("$")
+    ? /[A-Za-z0-9_-]/
+    : /[A-Za-z0-9._/-]/;
+}
+
 async function startClient(context: vscode.ExtensionContext): Promise<void> {
   documentSelector = selectors();
   completionTokens.clear();
@@ -178,9 +187,7 @@ function tokenRangeBeforeCursor(
     const start = position.character - token.length;
     const preceding = line[start - 1] ?? "";
     if (/\w/.test(preceding)) continue;
-    const continuation = token.startsWith("$")
-      ? /[A-Za-z0-9_-]/
-      : /[A-Za-z0-9._/-]/;
+    const continuation = tokenContinuation(token);
     if (continuation.test(following)) continue;
     return new vscode.Range(
       position.line,
@@ -204,9 +211,7 @@ function tokenRangeAfterCursor(
     if (!suffix.startsWith(token)) continue;
     if (/\w/.test(preceding)) continue;
     const end = position.character + token.length;
-    const continuation = token.startsWith("$")
-      ? /[A-Za-z0-9_-]/
-      : /[A-Za-z0-9._/-]/;
+    const continuation = tokenContinuation(token);
     if (continuation.test(line[end] ?? "")) continue;
     return new vscode.Range(
       position.line,
@@ -216,6 +221,44 @@ function tokenRangeAfterCursor(
     );
   }
   return undefined;
+}
+
+function mentionRangeBeforeCursor(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+): vscode.Range | undefined {
+  const line = document.lineAt(position.line).text;
+  const prefix = line.slice(0, position.character);
+  const match = prefix.match(mentionBeforePattern);
+  if (!match) return undefined;
+
+  const token = match[1];
+  const start = position.character - token.length;
+  if (tokenContinuation(token).test(line[position.character] ?? "")) {
+    return undefined;
+  }
+  return new vscode.Range(
+    position.line,
+    start,
+    position.line,
+    position.character,
+  );
+}
+
+function mentionRangeAfterCursor(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+): vscode.Range | undefined {
+  const line = document.lineAt(position.line).text;
+  const suffix = line.slice(position.character);
+  const preceding = line[position.character - 1] ?? "";
+  const match = suffix.match(mentionAfterPattern);
+  if (!match || /\w/.test(preceding)) return undefined;
+
+  const token = match[1];
+  const end = position.character + token.length;
+  if (tokenContinuation(token).test(line[end] ?? "")) return undefined;
+  return new vscode.Range(position.line, position.character, position.line, end);
 }
 
 async function atomicBackspace(): Promise<void> {
@@ -281,8 +324,8 @@ function moveSelection(
 
   const range =
     direction === "left"
-      ? tokenRangeBeforeCursor(document, selection.active)
-      : tokenRangeAfterCursor(document, selection.active);
+      ? mentionRangeBeforeCursor(document, selection.active)
+      : mentionRangeAfterCursor(document, selection.active);
   const position = range
     ? direction === "left"
       ? range.start

@@ -8,7 +8,8 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileURLToPath } from "node:url";
 import { CompletionType, getCompletions } from "./completion";
-import { getHover } from "./hover";
+import { getHover, getPastedContentHover } from "./hover";
+import { getDefinition } from "./definition";
 import { BUILTIN_COMMANDS, SlashCommand } from "./commands";
 import {
   discoverSkills,
@@ -28,6 +29,7 @@ let rootPath = process.cwd();
 let allCommands: SlashCommand[] = [];
 let allSkills: Skill[] = [];
 let allPlugins: Plugin[] = [];
+let pastedContent = true;
 
 function mergeCommands(customPrompts: SlashCommand[]): SlashCommand[] {
   const overriddenNames = new Set(customPrompts.map((prompt) => prompt.name));
@@ -45,6 +47,7 @@ function completionTokens(skills: Skill[], plugins: Plugin[]): string[] {
 }
 
 connection.onInitialize(async (params): Promise<InitializeResult> => {
+  pastedContent = params.initializationOptions?.pastedContent !== false;
   const rootUri = params.workspaceFolders?.[0]?.uri;
   if (rootUri?.startsWith("file:")) {
     rootPath = fileURLToPath(rootUri);
@@ -66,6 +69,7 @@ connection.onInitialize(async (params): Promise<InitializeResult> => {
         resolveProvider: true,
       },
       hoverProvider: true,
+      definitionProvider: true,
       experimental: {
         codexCompletionTokens: completionTokens(allSkills, allPlugins),
       },
@@ -128,10 +132,30 @@ connection.onCompletionResolve((item) => {
   return item;
 });
 
-connection.onHover((params) => {
+connection.onHover(async (params) => {
   const doc = documents.get(params.textDocument.uri);
   if (!doc) return null;
+  if (pastedContent) {
+    const pastedHover = await getPastedContentHover(
+      connection,
+      doc,
+      params.position,
+    );
+    if (pastedHover) return pastedHover;
+  }
   return getHover(doc, params.position, allCommands, allSkills, allPlugins);
+});
+
+connection.onDefinition(async (params) => {
+  const doc = documents.get(params.textDocument.uri);
+  if (!doc) return null;
+  return getDefinition(
+    connection,
+    doc,
+    params.position,
+    allSkills,
+    pastedContent,
+  );
 });
 
 documents.listen(connection);

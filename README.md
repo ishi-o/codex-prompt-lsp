@@ -22,9 +22,9 @@ markdown files) and attach the language server, which provides:
   and ranked by relevance
 - **Distribution** — npm package and Mason registry
 - **Atomic mention movement and deletion** — the left and right arrow keys move
-  across exact `$skill` and `@plugin` completions as one token, and Backspace at
-  a token's end removes the entire token; incomplete prefixes continue to move
-  and delete one character at a time
+  across `$skill` and `@plugin` mentions as one token, and Backspace at the end
+  of an exact completion removes the entire token; incomplete prefixes remain
+  character-wise for Backspace
 
 Hover on any of these shows its description.
 
@@ -46,7 +46,9 @@ mention movement and deletion.
 
 The Neovim adapter is packaged as a plugin and includes automatic Codex buffer
 detection, `markdown.codex` filetype setup, mention highlighting, and atomic
-mention movement and Backspace deletion.
+mention movement and Backspace deletion. Multiline pastes are represented as
+`[Pasted Content #1 2 lines 11 chars]` while editing, expanded before the
+buffer is saved, and available through hover and definition.
 
 ### Requirements
 
@@ -80,8 +82,12 @@ require("nvim-codex-lsp").setup({
   node_cmd = "node",
   -- Delete exact $skill and @plugin completions with one Backspace
   atomic_backspace = true,
-  -- Move across exact $skill and @plugin completions with arrow keys
+  -- Move across $skill and @plugin mentions with arrow keys
   atomic_move = true,
+  -- Keep the cursor out of atomic tokens during other movements
+  atomic_cursor = true,
+  -- Compact multiline pastes and expose their original content
+  pasted_content = true,
 })
 ```
 
