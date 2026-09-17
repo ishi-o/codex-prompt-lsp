@@ -29,7 +29,7 @@ end
 local function setup_syntax(buf)
   vim.api.nvim_buf_call(buf, function()
     -- /command
-    vim.cmd([[syntax match CodexSlashCommand "\v/[a-zA-Z][a-zA-Z0-9_-]*"]])
+    vim.cmd([[syntax match CodexSlashCommand "\%^/[a-zA-Z][a-zA-Z0-9_-]*"]])
     -- $skill mentions
     vim.cmd([[syntax match CodexSkillMention "\v\$[a-zA-Z][a-zA-Z0-9_-]*"]])
     -- @plugin mentions

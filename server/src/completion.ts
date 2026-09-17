@@ -41,9 +41,12 @@ type TriggerContext =
   | { type: TriggerType.Mention; prefix: string; start: number }
   | { type: TriggerType.None };
 
-export function getTriggerContext(lineText: string): TriggerContext {
-  // Match a slash command at start of line or after whitespace
-  const slashMatch = lineText.match(/(?:^|\s)(\/[\w-]*)$/);
+export function getTriggerContext(
+  lineText: string,
+  isFirstLine: boolean,
+): TriggerContext {
+  // Slash commands are only valid at the start of the first document line.
+  const slashMatch = isFirstLine ? lineText.match(/^(\/[\w-]*)$/) : null;
   if (slashMatch) {
     return {
       type: TriggerType.Slash,
@@ -450,7 +453,7 @@ export async function getCompletions(
     end: position,
   });
 
-  const ctx = getTriggerContext(lineText);
+  const ctx = getTriggerContext(lineText, position.line === 0);
 
   if (ctx.type === TriggerType.Slash) {
     return {

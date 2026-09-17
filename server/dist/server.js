@@ -10073,8 +10073,8 @@ var Fzf = class {
 };
 
 // src/completion.ts
-function getTriggerContext(lineText) {
-  const slashMatch = lineText.match(/(?:^|\s)(\/[\w-]*)$/);
+function getTriggerContext(lineText, isFirstLine) {
+  const slashMatch = isFirstLine ? lineText.match(/^(\/[\w-]*)$/) : null;
   if (slashMatch) {
     return {
       type: "slash" /* Slash */,
@@ -10367,7 +10367,7 @@ async function getCompletions(doc, position, rootPath2, commands, skills, plugin
     start: { line: position.line, character: 0 },
     end: position
   });
-  const ctx = getTriggerContext(lineText);
+  const ctx = getTriggerContext(lineText, position.line === 0);
   if (ctx.type === "slash" /* Slash */) {
     return {
       isIncomplete: true,

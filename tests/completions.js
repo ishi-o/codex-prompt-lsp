@@ -171,7 +171,7 @@ server.stdout.on("data", (chunk) => {
   }
 });
 
-async function completions(documentUri, text) {
+async function completions(documentUri, text, line = 0) {
   notify("textDocument/didChange", {
     textDocument: { uri: documentUri, version: Date.now() },
     contentChanges: [{ text }],
@@ -179,7 +179,10 @@ async function completions(documentUri, text) {
 
   return request("textDocument/completion", {
     textDocument: { uri: documentUri },
-    position: { line: 0, character: text.length },
+    position: {
+      line,
+      character: line === 0 ? text.length : text.split("\n")[line].length,
+    },
     context:
       text.includes(".") && text.startsWith("@")
         ? { triggerKind: 3 }
@@ -243,6 +246,22 @@ timeout.unref();
         item.sortText === "slash:00000000",
     ),
   );
+
+  const inlineSlashResult = await completions(documentUri, "text /fzcmd");
+  assert.deepEqual(inlineSlashResult, {
+    isIncomplete: false,
+    items: [],
+  });
+
+  const laterLineSlashResult = await completions(
+    documentUri,
+    "first line\n/fzcmd",
+    1,
+  );
+  assert.deepEqual(laterLineSlashResult, {
+    isIncomplete: false,
+    items: [],
+  });
 
   const skillResult = await completions(documentUri, "$cmt");
   assert.equal(skillResult.isIncomplete, true);
