@@ -1,0 +1,121 @@
+{
+  "name": "codex-prompt-lsp",
+  "displayName": "Codex Prompt LSP",
+  "description": "Completions for Codex slash commands, skills, plugins, and files",
+  "version": "0.1.0",
+  "publisher": "ishi-o",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "vscode": "^1.88.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ishi-o/codex-prompt-lsp.git"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Codex Prompt LSP",
+      "properties": {
+        "codexPromptLsp.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the Codex prompt language server."
+        },
+        "codexPromptLsp.documentSelectors": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "default": [],
+          "description": "Additional document selectors served by the Codex prompt language server."
+        },
+        "codexPromptLsp.languageIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "markdown"
+          ],
+          "description": "VS Code language IDs accepted inside detected Codex directories. Empty accepts any language."
+        },
+        "codexPromptLsp.fileExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".md"
+          ],
+          "description": "File extensions accepted inside detected Codex directories."
+        },
+        "codexPromptLsp.codexHome": {
+          "type": "string",
+          "default": "",
+          "description": "Codex home directory. Empty uses CODEX_HOME or ~/.codex."
+        },
+        "codexPromptLsp.detectCodexHome": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the language server for matching files under the Codex home directory."
+        },
+        "codexPromptLsp.detectProjectCodexDirectories": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the language server for matching files under project .codex directories."
+        },
+        "codexPromptLsp.atomicBackspace": {
+          "type": "boolean",
+          "default": true,
+          "description": "Delete exact skill and plugin completion tokens with one Backspace."
+        },
+        "codexPromptLsp.highlightMentions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight Codex slash commands, skills, and plugin mentions."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "codexPromptLsp.atomicBackspace",
+        "title": "Codex Prompt: Atomic Backspace",
+        "enablement": "codexPromptLsp.active"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "codexPromptLsp.atomicBackspace",
+        "key": "backspace",
+        "mac": "backspace",
+        "when": "editorTextFocus && codexPromptLsp.active && config.codexPromptLsp.atomicBackspace && !suggestWidgetVisible"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.config.js",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.88.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  }
+}

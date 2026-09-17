@@ -1,0 +1,53 @@
+name: Build VS Code Extension
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "server/**"
+      - "vscode/**"
+      - ".github/workflows/build-vscode-extension.yml"
+  pull_request:
+    paths:
+      - "server/**"
+      - "vscode/**"
+      - ".github/workflows/build-vscode-extension.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            vscode/package-lock.json
+
+      - name: Validate and build server
+        run: npm ci && npm run typecheck && npm run lint && npm run build
+        working-directory: server
+
+      - name: Install extension
+        run: npm ci
+        working-directory: vscode
+
+      - name: Typecheck extension
+        run: npm run typecheck
+        working-directory: vscode
+
+      - name: Build extension
+        run: npm run build
+        working-directory: vscode
+
+      - name: Package extension
+        run: npm run package
+        working-directory: vscode
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codex-prompt-lsp-vsix
+          path: vscode/*.vsix

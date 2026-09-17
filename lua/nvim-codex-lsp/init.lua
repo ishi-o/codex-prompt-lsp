@@ -115,7 +115,7 @@ function M.setup(opts)
   local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":h:h:h")
   local server_js = plugin_root .. "/server/dist/server.js"
 
-  vim.lsp.config("codex_lsp", {
+  vim.lsp.config("codex-prompt", {
     cmd = { M.config.node_cmd, server_js, "--stdio" },
     filetypes = { "markdown.codex" },
     root_dir = function(_bufnr, on_dir)
@@ -127,13 +127,13 @@ function M.setup(opts)
     group = vim.api.nvim_create_augroup("nvim-codex-lsp-attach", { clear = true }),
     callback = function(ev)
       local client = vim.lsp.get_client_by_id(ev.data.client_id)
-      if client and client.name == "codex_lsp" and vim.bo[ev.buf].filetype == "markdown.codex" then
+      if client and client.name == "codex-prompt" and vim.bo[ev.buf].filetype == "markdown.codex" then
         setup_buffer(ev.buf, client)
       end
     end,
   })
 
-  vim.lsp.enable("codex_lsp")
+  vim.lsp.enable("codex-prompt")
 end
 
 return M

@@ -6,6 +6,7 @@ import {
   InitializeResult,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { fileURLToPath } from "node:url";
 import { getCompletions } from "./completion";
 import { getHover } from "./hover";
 import { BUILTIN_COMMANDS, SlashCommand } from "./commands";
@@ -27,16 +28,10 @@ let allCommands: SlashCommand[] = [];
 let allSkills: Skill[] = [];
 let allPlugins: Plugin[] = [];
 
-function fileUriToPath(uri: string): string {
-  const m = uri.match(/^file:\/\/([^/]*)(\/.*)$/);
-  if (!m) return uri;
-  return decodeURIComponent(m[2]);
-}
-
 connection.onInitialize((params): InitializeResult => {
   const rootUri = params.workspaceFolders?.[0]?.uri;
-  if (rootUri) {
-    rootPath = fileUriToPath(rootUri);
+  if (rootUri?.startsWith("file:")) {
+    rootPath = fileURLToPath(rootUri);
   }
 
   // Custom prompts override built-ins with the same name.
