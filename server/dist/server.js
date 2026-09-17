@@ -10536,157 +10536,112 @@ Plugin ID: \`${plugin.id}\``,
 }
 
 // src/commands.ts
+function builtinCommand(name, detail, documentation = detail) {
+  return { name, detail, documentation };
+}
 var BUILTIN_COMMANDS = [
-  {
-    name: "/agent",
-    detail: "Switch active agent thread",
-    documentation: "Inspect or continue work in a spawned subagent thread. Alias: `/subagents`."
-  },
-  {
-    name: "/apps",
-    detail: "Browse apps (connectors)",
-    documentation: "Browse available apps/connectors (e.g. Slack, Linear) and insert them into the prompt."
-  },
-  {
-    name: "/archive",
-    detail: "Archive the current session and exit",
-    documentation: "Archives the current session and exits Codex. Archived sessions can be resumed later."
-  },
-  {
-    name: "/approve",
-    detail: "Approve one retry of a recent auto review denial",
-    documentation: "Approves a single retry of a recent command that was denied by auto review."
-  },
-  {
-    name: "/clear",
-    detail: "Clear the terminal and start a fresh chat",
-    documentation: "Clears the terminal and starts a fresh chat with an empty context."
-  },
-  {
-    name: "/compact",
-    detail: "Summarize visible chat to free tokens",
-    documentation: "Summarizes the visible conversation to free context window space."
-  },
-  {
-    name: "/copy",
-    detail: "Copy latest completed Codex output",
-    documentation: "Copies the latest completed Codex output to the clipboard. Also bound to Ctrl+O."
-  },
-  {
-    name: "/delete",
-    detail: "Delete the current session and exit",
-    documentation: "Permanently deletes the current session and exits Codex."
-  },
-  {
-    name: "/diff",
-    detail: "Show Git diff including untracked files",
-    documentation: "Shows the Git diff of your working tree, including untracked files."
-  },
-  {
-    name: "/exit",
-    detail: "Exit the CLI",
-    documentation: "Exits Codex. Alias: `/quit`."
-  },
-  {
-    name: "/experimental",
-    detail: "Toggle experimental features",
-    documentation: "Turns experimental Codex features on or off. Restart Codex after changing them."
-  },
-  {
-    name: "/feedback",
-    detail: "Send feedback",
-    documentation: "Sends feedback to the Codex team."
-  },
-  {
-    name: "/goal",
-    detail: "Set goals",
-    documentation: "Sets goals for the current session to keep Codex on track."
-  },
-  {
-    name: "/ide",
-    detail: "Include IDE context",
-    documentation: "Includes open files, the current selection, and other context from a connected IDE."
-  },
-  {
-    name: "/import",
-    detail: "Import Claude Code or Cursor setup",
-    documentation: "Imports settings and configuration from Claude Code or Cursor."
-  },
-  {
-    name: "/init",
-    detail: "Initialize project with AGENTS.md",
-    documentation: "Analyzes the project and creates an AGENTS.md file with project context and conventions."
-  },
-  {
-    name: "/keymap",
-    detail: "Remap TUI keyboard shortcuts",
-    documentation: "Customizes TUI keyboard shortcuts."
-  },
-  {
-    name: "/mcp",
-    detail: "Manage MCP servers",
-    documentation: "Lists and manages configured MCP servers."
-  },
-  {
-    name: "/memories",
-    detail: "Configure memory use and generation",
-    documentation: "Configures how Codex uses and generates memories."
-  },
-  {
-    name: "/model",
-    detail: "Select the model for this session",
-    documentation: "Selects the model used in the current session. Examples:\n```\n/model gpt-5.1-codex\n```"
-  },
-  {
-    name: "/permissions",
-    detail: "Set what Codex can do without asking first",
-    documentation: "Relaxes or tightens approval requirements mid-session (what Codex can do without asking first)."
-  },
-  {
-    name: "/plan",
-    detail: "Create plans",
-    documentation: "Enters plan mode: Codex drafts a plan before making changes."
-  },
-  {
-    name: "/plugins",
-    detail: "Browse installed and discoverable plugins",
-    documentation: "Browses installed and discoverable Codex plugins."
-  },
-  {
-    name: "/quit",
-    detail: "Exit the CLI",
-    documentation: "Exits Codex. Alias: `/exit`."
-  },
-  {
-    name: "/rename",
-    detail: "Rename the current chat",
-    documentation: "Renames the current chat/session."
-  },
-  {
-    name: "/review",
-    detail: "Run code review",
-    documentation: "Reviews the changes in your working tree using the current model."
-  },
-  {
-    name: "/skills",
-    detail: "Browse and use skills",
-    documentation: "Browses available skills and applies them to improve task-specific behavior. Skills can also be mentioned directly with `$SkillName`."
-  },
-  {
-    name: "/status",
-    detail: "Show status",
-    documentation: "Shows current status: model, authentication, workspace, and usage."
-  },
-  {
-    name: "/subagents",
-    detail: "Switch active agent thread",
-    documentation: "Alias of `/agent`."
-  },
-  {
-    name: "/vim",
-    detail: "Toggle Vim mode for the composer",
-    documentation: "Enables or disables Vim modal editing in the composer."
-  }
+  builtinCommand("/model", "choose what model and reasoning effort to use"),
+  builtinCommand(
+    "/ide",
+    "include current selection, open files, and other context from your IDE"
+  ),
+  builtinCommand("/permissions", "choose what Codex is allowed to do"),
+  builtinCommand("/keymap", "remap TUI shortcuts"),
+  builtinCommand("/vim", "toggle Vim mode for the composer"),
+  builtinCommand("/setup-default-sandbox", "set up elevated agent sandbox"),
+  builtinCommand(
+    "/sandbox-add-read-dir",
+    "let sandbox read a directory",
+    "let sandbox read a directory.\n\nUsage: `/sandbox-add-read-dir <absolute_path>`"
+  ),
+  builtinCommand("/experimental", "toggle experimental features"),
+  builtinCommand(
+    "/approve",
+    "approve one retry of a recent auto-review denial"
+  ),
+  builtinCommand("/memories", "configure memory use and generation"),
+  builtinCommand(
+    "/skills",
+    "use skills to improve how Codex performs specific tasks"
+  ),
+  builtinCommand(
+    "/import",
+    "import setup, this project, and recent chats from Claude Code"
+  ),
+  builtinCommand("/hooks", "view and manage lifecycle hooks"),
+  builtinCommand("/review", "review my current changes and find issues"),
+  builtinCommand("/rename", "rename the current thread"),
+  builtinCommand("/new", "start a new chat during a conversation"),
+  builtinCommand("/archive", "archive this session and exit"),
+  builtinCommand("/delete", "permanently delete this session and exit"),
+  builtinCommand("/resume", "resume a saved chat"),
+  builtinCommand("/fork", "fork the current chat"),
+  builtinCommand(
+    "/worktree",
+    "start or continue a conversation in a new worktree"
+  ),
+  builtinCommand("/app", "continue this session in the Desktop app"),
+  builtinCommand(
+    "/init",
+    "create an AGENTS.md file with instructions for Codex"
+  ),
+  builtinCommand(
+    "/compact",
+    "summarize conversation to prevent hitting the context limit"
+  ),
+  builtinCommand("/recap", "summarize the current conversation now"),
+  builtinCommand("/goal", "set or view the goal for a long-running task"),
+  builtinCommand(
+    "/agents",
+    "view and switch between all active agent sessions"
+  ),
+  builtinCommand("/side", "start a side conversation in an ephemeral fork"),
+  builtinCommand("/copy", "copy the last response or part of it"),
+  builtinCommand("/export", "export the conversation as markdown"),
+  builtinCommand(
+    "/raw",
+    "toggle raw scrollback mode for copy-friendly terminal selection"
+  ),
+  builtinCommand("/diff", "show git diff (including untracked files)"),
+  builtinCommand("/mention", "mention a file"),
+  builtinCommand(
+    "/status",
+    "show current session configuration and token usage"
+  ),
+  builtinCommand("/cd", "change the current working directory"),
+  builtinCommand("/pwd", "show the current working directory"),
+  builtinCommand("/usage", "view account usage or use a usage limit reset"),
+  builtinCommand(
+    "/debug-config",
+    "show config layers and requirement sources for debugging"
+  ),
+  builtinCommand(
+    "/title",
+    "configure which items appear in the terminal title"
+  ),
+  builtinCommand(
+    "/statusline",
+    "configure which items appear in the status line"
+  ),
+  builtinCommand("/theme", "choose a syntax highlighting theme"),
+  builtinCommand("/pets", "choose or hide the terminal pet"),
+  builtinCommand(
+    "/mcp",
+    "list configured MCP tools; use /mcp verbose for details"
+  ),
+  builtinCommand("/apps", "manage apps"),
+  builtinCommand("/plugins", "browse plugins"),
+  builtinCommand("/logout", "log out of Codex"),
+  builtinCommand("/exit", "exit Codex"),
+  builtinCommand("/quit", "exit Codex"),
+  builtinCommand("/feedback", "send logs to maintainers"),
+  builtinCommand("/rollout", "print the rollout file path"),
+  builtinCommand("/ps", "list background terminals"),
+  builtinCommand("/stop", "stop all background terminals"),
+  builtinCommand("/clear", "clear the terminal and start a new chat"),
+  builtinCommand("/personality", "choose a communication style for Codex"),
+  builtinCommand("/test-approval", "test approval request"),
+  builtinCommand("/subagents", "switch between this session's subagents")
 ];
 
 // src/skills.ts

@@ -3,6 +3,7 @@ name: Build VS Code Extension
 on:
   push:
     branches: [main]
+    tags: ["v*"]
     paths:
       - "server/**"
       - "vscode/**"
@@ -12,6 +13,7 @@ on:
       - "server/**"
       - "vscode/**"
       - ".github/workflows/build-vscode-extension.yml"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -51,3 +53,22 @@ jobs:
         with:
           name: codex-prompt-lsp-vsix
           path: vscode/*.vsix
+
+      - name: Verify release version
+        if: >-
+          (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+          startsWith(github.ref, 'refs/tags/v')
+        working-directory: vscode
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+          fi
+
+      - name: Publish extension
+        if: >-
+          (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+          startsWith(github.ref, 'refs/tags/v')
+        working-directory: vscode
+        run: npx vsce publish --no-dependencies
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

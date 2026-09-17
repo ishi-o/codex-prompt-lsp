@@ -133,6 +133,9 @@ async function startClient(context: vscode.ExtensionContext): Promise<void> {
   };
   const clientOptions: LanguageClientOptions = {
     documentSelector,
+    initializationOptions: {
+      pastedContent: configuration().get<boolean>("pastedContent", true),
+    },
     middleware: {
       async provideCompletionItem(document, position, context, token, next) {
         const result = await next(document, position, context, token);

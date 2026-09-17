@@ -109,24 +109,31 @@ that match any of:
 <details>
 <summary>VS Code adapter</summary>
 
-The `vscode/` directory contains the VS Code adapter. Build and package it
-with:
+The `vscode/` directory contains the VS Code adapter. It bundles the language
+server and provides slash-command, skill, plugin, and file completions, fuzzy
+filtering, hover descriptions, mention highlighting, and atomic movement and
+Backspace behavior. Multiline paste preservation is currently Neovim-only.
+
+GitHub Actions publishes the extension to the Visual Studio Code Marketplace
+for version tags after `VSCE_PAT` is configured, and uploads a `.vsix` artifact
+for every build. Before a Marketplace release is available, build and install
+the VSIX with:
 
 ```
 make package-vscode
+code --install-extension vscode/codex-prompt-lsp-1.0.0.vsix --force
 ```
 
 ### Requirements
 
 - VS Code >= 1.88
+- Node.js >= 18
 
-The extension detects matching files under `$CODEX_HOME` and project `.codex`
-directories. Matching files use the `markdown` language ID and `.md` extension
-by default, so ordinary Markdown files are not attached. It provides the same
-completions, hover information, mention highlighting, and atomic mention
-movement and Backspace behavior as the Neovim adapter. Detection and
-editor-only features can be configured independently, and advanced targets can
-be added with `codexPromptLsp.documentSelectors`.
+By default, the extension detects files under `$CODEX_HOME` and project
+`.codex` directories when they use the `markdown` language ID and `.md`
+extension. Ordinary Markdown files elsewhere are not attached. Configure
+additional targets with `codexPromptLsp.documentSelectors`. See
+[`vscode/README.md`](vscode/README.md) for the feature list and requirements.
 
 </details>
 

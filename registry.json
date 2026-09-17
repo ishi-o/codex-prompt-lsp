@@ -7,7 +7,7 @@
     "languages": ["Markdown"],
     "categories": ["LSP"],
     "source": {
-      "id": "pkg:npm/codex-prompt-lsp@0.1.0"
+      "id": "pkg:npm/codex-prompt-lsp@1.0.0"
     },
     "bin": {
       "codex-prompt-lsp": "npm:codex-prompt-lsp"

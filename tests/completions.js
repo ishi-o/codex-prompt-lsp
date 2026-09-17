@@ -247,6 +247,87 @@ timeout.unref();
     ),
   );
 
+  const slashCommandDetails = new Map([
+    ["/model", "choose what model and reasoning effort to use"],
+    [
+      "/ide",
+      "include current selection, open files, and other context from your IDE",
+    ],
+    ["/permissions", "choose what Codex is allowed to do"],
+    ["/keymap", "remap TUI shortcuts"],
+    ["/vim", "toggle Vim mode for the composer"],
+    ["/setup-default-sandbox", "set up elevated agent sandbox"],
+    ["/sandbox-add-read-dir", "let sandbox read a directory"],
+    ["/experimental", "toggle experimental features"],
+    ["/approve", "approve one retry of a recent auto-review denial"],
+    ["/memories", "configure memory use and generation"],
+    ["/skills", "use skills to improve how Codex performs specific tasks"],
+    [
+      "/import",
+      "import setup, this project, and recent chats from Claude Code",
+    ],
+    ["/hooks", "view and manage lifecycle hooks"],
+    ["/review", "review my current changes and find issues"],
+    ["/rename", "rename the current thread"],
+    ["/new", "start a new chat during a conversation"],
+    ["/archive", "archive this session and exit"],
+    ["/delete", "permanently delete this session and exit"],
+    ["/resume", "resume a saved chat"],
+    ["/fork", "fork the current chat"],
+    ["/worktree", "start or continue a conversation in a new worktree"],
+    ["/app", "continue this session in the Desktop app"],
+    ["/init", "create an AGENTS.md file with instructions for Codex"],
+    ["/compact", "summarize conversation to prevent hitting the context limit"],
+    ["/recap", "summarize the current conversation now"],
+    ["/goal", "set or view the goal for a long-running task"],
+    ["/agents", "view and switch between all active agent sessions"],
+    ["/side", "start a side conversation in an ephemeral fork"],
+    ["/copy", "copy the last response or part of it"],
+    ["/export", "export the conversation as markdown"],
+    ["/raw", "toggle raw scrollback mode for copy-friendly terminal selection"],
+    ["/diff", "show git diff (including untracked files)"],
+    ["/mention", "mention a file"],
+    ["/status", "show current session configuration and token usage"],
+    ["/cd", "change the current working directory"],
+    ["/pwd", "show the current working directory"],
+    ["/usage", "view account usage or use a usage limit reset"],
+    [
+      "/debug-config",
+      "show config layers and requirement sources for debugging",
+    ],
+    ["/title", "configure which items appear in the terminal title"],
+    ["/statusline", "configure which items appear in the status line"],
+    ["/theme", "choose a syntax highlighting theme"],
+    ["/pets", "choose or hide the terminal pet"],
+    ["/mcp", "list configured MCP tools; use /mcp verbose for details"],
+    ["/apps", "manage apps"],
+    ["/plugins", "browse plugins"],
+    ["/logout", "log out of Codex"],
+    ["/exit", "exit Codex"],
+    ["/quit", "exit Codex"],
+    ["/feedback", "send logs to maintainers"],
+    ["/rollout", "print the rollout file path"],
+    ["/ps", "list background terminals"],
+    ["/stop", "stop all background terminals"],
+    ["/clear", "clear the terminal and start a new chat"],
+    ["/personality", "choose a communication style for Codex"],
+    ["/test-approval", "test approval request"],
+    ["/subagents", "switch between this session's subagents"],
+  ]);
+  const allSlashResult = await completions(documentUri, "/");
+  const slashItems = new Map(
+    allSlashResult.items.map((item) => [item.label, item]),
+  );
+
+  for (const [command, detail] of slashCommandDetails) {
+    const item = slashItems.get(command);
+    assert.ok(item, `missing built-in slash command ${command}`);
+    assert.equal(item.detail, detail);
+    assert.equal(item.textEdit.newText, insertedText(command));
+  }
+
+  assert.equal(slashItems.has("/agent"), false);
+
   const inlineSlashResult = await completions(documentUri, "text /fzcmd");
   assert.deepEqual(inlineSlashResult, {
     isIncomplete: false,

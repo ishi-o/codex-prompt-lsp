@@ -2,7 +2,7 @@
   "name": "codex-prompt-lsp",
   "displayName": "Codex Prompt LSP",
   "description": "Completions for Codex slash commands, skills, plugins, and files",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "ishi-o",
   "license": "MIT",
   "type": "commonjs",
@@ -89,6 +89,11 @@
           "type": "boolean",
           "default": true,
           "description": "Highlight Codex slash commands, skills, and plugin mentions."
+        },
+        "codexPromptLsp.pastedContent": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable pasted-content hover and definition support. VS Code does not intercept paste operations."
         }
       }
     },

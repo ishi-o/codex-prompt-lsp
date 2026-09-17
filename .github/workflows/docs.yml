@@ -27,7 +27,7 @@ jobs:
         with:
           vimdoc: nvim-codex-lsp
           description: 'LSP completions for the Codex CLI chat input'
-          version: 'v0.1.0'
+          version: 'v1.0.0'
           demojify: true
           treesitter: true
 

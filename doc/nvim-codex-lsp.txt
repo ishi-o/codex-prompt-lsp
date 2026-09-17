@@ -1,5 +1,5 @@
 *nvim-codex-lsp.txt*              LSP completions for the Codex CLI chat input
-                                  For v0.1.0    Last change: 2026 September 15
+                                  For v1.0.0    Last change: 2026 September 15
 
 ==============================================================================
 Table of Contents                           *nvim-codex-lsp-table-of-contents*
