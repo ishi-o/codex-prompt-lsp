@@ -1,26 +1,28 @@
 *nvim-codex-lsp.txt*              LSP completions for the Codex CLI chat input
-                                  For v1.0.0    Last change: 2026 September 15
+                                  For v1.0.0    Last change: 2026 September 17
 
 ==============================================================================
 Table of Contents                           *nvim-codex-lsp-table-of-contents*
 
-1. nvim-codex-lsp                              |nvim-codex-lsp-nvim-codex-lsp|
-  - Requirements                  |nvim-codex-lsp-nvim-codex-lsp-requirements|
-  - Setup                                |nvim-codex-lsp-nvim-codex-lsp-setup|
-  - Configuration                |nvim-codex-lsp-nvim-codex-lsp-configuration|
-  - Buffer detection          |nvim-codex-lsp-nvim-codex-lsp-buffer-detection|
-  - Development                    |nvim-codex-lsp-nvim-codex-lsp-development|
-  - License                            |nvim-codex-lsp-nvim-codex-lsp-license|
+1. codex-prompt-lsp                          |nvim-codex-lsp-codex-prompt-lsp|
+  - Requirements                |nvim-codex-lsp-codex-prompt-lsp-requirements|
+  - Adapters                        |nvim-codex-lsp-codex-prompt-lsp-adapters|
+  - Mason                              |nvim-codex-lsp-codex-prompt-lsp-mason|
+  - Development                  |nvim-codex-lsp-codex-prompt-lsp-development|
+  - License                          |nvim-codex-lsp-codex-prompt-lsp-license|
 
 ==============================================================================
-1. nvim-codex-lsp                              *nvim-codex-lsp-nvim-codex-lsp*
+1. codex-prompt-lsp                          *nvim-codex-lsp-codex-prompt-lsp*
 
 LSP-powered completions for the Codex CLI
 <https://developers.openai.com/codex/cli> chat input.
 
+`codex-prompt-lsp` is an editor-neutral language server. Editor-specific
+integration is provided by adapters for Neovim and VS Code.
+
 When you press `Ctrl+G` in the Codex TUI, Codex opens your `$EDITOR` on a
-temporary `.md` file. This plugin detects that buffer (and your Codex markdown
-files) and attaches a small LSP server that provides:
+temporary `.md` file. An adapter can detect that buffer (and your Codex
+markdown files) and attach the language server, which provides:
 
 - **Slash commands** (`/compact`, `/diff`, `/review`, …) — all built-in
     Codex commands, plus custom prompts discovered from
@@ -29,29 +31,54 @@ files) and attaches a small LSP server that provides:
     `<project>/.codex/skills/*/SKILL.md` (repo skills, higher priority) and
     `$CODEX_HOME/skills/*/SKILL.md` (user skills)
 - **Unified mentions** (`@`) — `@` in the Codex composer opens the unified
-    mention popup: file search (project walk), installed plugins (via
+    mention popup: fuzzy file search, installed plugins (via
     `codex plugin list --json`), and skills (inserted as `$name`, their sigil)
-- **Atomic completion deletion** — pressing Backspace at the end of an exact
-    `$skill` or `@plugin` completion removes the entire token; incomplete prefixes
-    continue to delete one character at a time
+- **Fuzzy filtering** — slash commands, skills, plugins, and files are filtered
+    and ranked by relevance
+- **Distribution** — npm package and Mason registry
+- **Atomic mention movement and deletion** — the left and right arrow keys move
+    across `$skill` and `@plugin` mentions as one token, and Backspace at the end
+    of an exact completion removes the entire token; incomplete prefixes remain
+    character-wise for Backspace
 
 Hover on any of these shows its description.
 
+The attached LSP client is named `codex-prompt` in both adapters.
 
-REQUIREMENTS                      *nvim-codex-lsp-nvim-codex-lsp-requirements*
 
-- Neovim >= 0.11 (`vim.lsp.config` / `vim.lsp.enable`)
+REQUIREMENTS                    *nvim-codex-lsp-codex-prompt-lsp-requirements*
+
 - Node.js >= 18
 - Codex CLI on `$PATH` (optional — only needed for `@plugin` completions)
 
 
-SETUP                                    *nvim-codex-lsp-nvim-codex-lsp-setup*
+ADAPTERS                            *nvim-codex-lsp-codex-prompt-lsp-adapters*
+
+Adapters add editor-specific features on top of the shared language-server
+features, including document detection, mention highlighting, and atomic
+mention movement and deletion.
+
+Neovim adapter ~
+
+The Neovim adapter is packaged as a plugin and includes automatic Codex buffer
+detection, `markdown.codex` filetype setup, mention highlighting, and atomic
+mention movement and Backspace deletion. Multiline pastes are represented as
+`[Pasted Content #1 2 lines 11 chars]` while editing, expanded before the
+buffer is saved, and available through hover and definition.
+
+
+REQUIREMENTS ~
+
+- Neovim >= 0.11 (`vim.lsp.config` / `vim.lsp.enable`)
+
+
+SETUP ~
 
 With lazy.nvim <https://lazy.folke.io>:
 
 >lua
     {
-      "ishi-o/nvim-codex-lsp",
+      "ishi-o/codex-prompt-lsp",
       opts = {},
     }
 <
@@ -59,15 +86,14 @@ With lazy.nvim <https://lazy.folke.io>:
 With `vim.pack`:
 
 >lua
-    vim.pack.add("ishi-o/nvim-codex-lsp")
+    vim.pack.add("ishi-o/codex-prompt-lsp")
     require("nvim-codex-lsp").setup()
 <
 
-The plugin works out of the box with no explicit setup —
-`plugin/nvim-codex-lsp.lua` auto-configures with defaults.
+`plugin/nvim-codex-lsp.lua` auto-configures the adapter with defaults.
 
 
-CONFIGURATION                    *nvim-codex-lsp-nvim-codex-lsp-configuration*
+CONFIGURATION ~
 
 >lua
     require("nvim-codex-lsp").setup({
@@ -75,37 +101,89 @@ CONFIGURATION                    *nvim-codex-lsp-nvim-codex-lsp-configuration*
       node_cmd = "node",
       -- Delete exact $skill and @plugin completions with one Backspace
       atomic_backspace = true,
+      -- Move across $skill and @plugin mentions with arrow keys
+      atomic_move = true,
+      -- Keep the cursor out of atomic tokens during other movements
+      atomic_cursor = true,
+      -- Compact multiline pastes and expose their original content
+      pasted_content = true,
     })
 <
 
 
-BUFFER DETECTION              *nvim-codex-lsp-nvim-codex-lsp-buffer-detection*
+BUFFER DETECTION ~
 
 The LSP server and buffer-local features attach based only on the
 `markdown.codex` filetype; they do not inspect the buffer path or URI. This
-supports integrations such as `mini.codex`
-<https://github.com/ishi-o/mini.codex>, which sets that filetype on its
-`mini-codex://input` buffer.
+also supports integrations that set that filetype directly.
 
-For convenience, the plugin automatically assigns `markdown.codex` to files
+For convenience, the adapter automatically assigns `markdown.codex` to files
 that match any of:
 
 1. `.tmpXXXXXX.md` in the system temp dir — the Ctrl+G external editor buffer
 2. `$CODEX_HOME/**/*.md` (default `~/.codex/`) — skills, prompts, AGENTS.md
 3. any `.codex/**/*.md` in a project — repo-local skills
 
+VS Code adapter ~
 
-DEVELOPMENT                        *nvim-codex-lsp-nvim-codex-lsp-development*
+The `vscode/` directory contains the VS Code adapter. It bundles the language
+server and provides slash-command, skill, plugin, and file completions, fuzzy
+filtering, hover descriptions, mention highlighting, and atomic movement and
+Backspace behavior. Multiline paste preservation is currently Neovim-only.
+
+GitHub Actions publishes the extension to the Visual Studio Code Marketplace
+and uploads a `.vsix` artifact for every build. Before a Marketplace release is
+available, build and install the VSIX with:
+
+>
+    make package-vscode
+    code --install-extension vscode/codex-prompt-lsp-1.0.0.vsix --force
+<
+
+
+REQUIREMENTS ~
+
+- VS Code >= 1.88
+- Node.js >= 18
+
+By default, the extension detects files under `$CODEX_HOME` and project
+`.codex` directories when they use the `markdown` language ID and `.md`
+extension. Ordinary Markdown files elsewhere are not attached. Configure
+additional targets with `codexPromptLsp.documentSelectors`. See
+`vscode/README.md` <vscode/README.md> for the feature list and requirements.
+
+
+MASON                                  *nvim-codex-lsp-codex-prompt-lsp-mason*
+
+The repository includes a Mason registry manifest for the server:
+
+>lua
+    require("mason").setup({
+      registries = {
+        "github:ishi-o/codex-prompt-lsp",
+        "github:mason-org/mason-registry",
+      },
+    })
+<
+
+After the npm package is published, install it with `:MasonInstall
+codex-prompt-lsp`.
+
+Mason provides the editor-neutral server. Configure an LSP client to launch
+`codex-prompt-lsp --stdio`.
+
+
+DEVELOPMENT                      *nvim-codex-lsp-codex-prompt-lsp-development*
 
 >
     make build   # install deps and build server/dist/server.js
 <
 
-The LSP server is a TypeScript project under `server/`, bundled to a single
-file with esbuild and committed to the repo so users don’t need to build it.
+The LSP server source is under `server/`; `make build` produces
+`server/dist/server.js`.
 
 
-LICENSE                                *nvim-codex-lsp-nvim-codex-lsp-license*
+LICENSE                              *nvim-codex-lsp-codex-prompt-lsp-license*
 
 MIT
 
