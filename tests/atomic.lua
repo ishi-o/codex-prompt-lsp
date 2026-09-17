@@ -41,4 +41,21 @@ keys = vim.api.nvim_replace_termcodes("i<BS><Esc>", true, false, true)
 vim.api.nvim_feedkeys(keys, "xt", false)
 assert(vim.api.nvim_get_current_line() == "Use $image!")
 
+local move_buf = vim.api.nvim_create_buf(false, true)
+vim.api.nvim_set_current_buf(move_buf)
+atomic.setup(move_buf, { "$imagegen", "@openai-templates" })
+assert(vim.fn.maparg("<Left>", "i", false, true).desc == "Move across a Codex mention as one token")
+assert(vim.fn.maparg("<Right>", "i", false, true).desc == "Move across a Codex mention as one token")
+
+vim.api.nvim_buf_set_lines(move_buf, 0, -1, false, { "@openai-templates!" })
+vim.api.nvim_win_set_cursor(0, { 1, #"@openai-templates" })
+assert(atomic._atomic_move(move_buf, "left") == string.rep("<Left>", #"@openai-templates"))
+
+vim.api.nvim_win_set_cursor(0, { 1, 0 })
+assert(atomic._atomic_move(move_buf, "right") == string.rep("<Right>", #"@openai-templates"))
+
+vim.api.nvim_buf_set_lines(move_buf, 0, -1, false, { "Use /command!" })
+vim.api.nvim_win_set_cursor(0, { 1, #"Use /command" })
+assert(atomic._atomic_move(move_buf, "left") == "<Left>")
+
 print("atomic completion tests passed")

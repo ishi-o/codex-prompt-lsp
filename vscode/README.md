@@ -1,12 +1,13 @@
 # Codex Prompt LSP
 
 VS Code client for Codex prompt completions, hover information, mention
-highlighting, and atomic completion deletion.
+highlighting, and atomic mention movement and deletion.
 
 The extension enables itself for matching files under `$CODEX_HOME` and any
 project `.codex` directory. By default, matching files must use the `markdown`
-language ID and `.md` extension. Highlighting, atomic Backspace, detection,
-and additional document selectors are configurable under `codexPromptLsp`.
+language ID and `.md` extension. Highlighting, atomic movement and Backspace,
+detection, and additional document selectors are configurable under
+`codexPromptLsp`.
 
 ```json
 {
@@ -16,6 +17,7 @@ and additional document selectors are configurable under `codexPromptLsp`.
   "codexPromptLsp.detectCodexHome": true,
   "codexPromptLsp.detectProjectCodexDirectories": true,
   "codexPromptLsp.atomicBackspace": true,
+  "codexPromptLsp.atomicMove": true,
   "codexPromptLsp.highlightMentions": true,
   "codexPromptLsp.documentSelectors": []
 }

@@ -3,6 +3,7 @@ local M = {}
 M.config = {
   node_cmd = "node",
   atomic_backspace = true,
+  atomic_move = true,
 }
 
 -- vim.fs.sep requires Neovim 0.12+; fall back to the platform separator.
@@ -39,9 +40,12 @@ end
 
 local function setup_buffer(buf, client)
   setup_syntax(buf)
-  if M.config.atomic_backspace then
+  if M.config.atomic_backspace or M.config.atomic_move then
     local tokens = vim.tbl_get(client.server_capabilities, "experimental", "codexCompletionTokens") or {}
-    require("nvim-codex-lsp.atomic").setup(buf, tokens)
+    require("nvim-codex-lsp.atomic").setup(buf, tokens, {
+      backspace = M.config.atomic_backspace,
+      move = M.config.atomic_move,
+    })
   end
 end
 
@@ -57,7 +61,7 @@ local function is_external_editor_buffer(filepath)
     and name:match("^%.tmp[%w]+%.md$") ~= nil
 end
 
----@param opts? {node_cmd?: string, atomic_backspace?: boolean}
+---@param opts? {node_cmd?: string, atomic_backspace?: boolean, atomic_move?: boolean}
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", M.config, opts or {})
   vim.g.codex_lsp_configured = true

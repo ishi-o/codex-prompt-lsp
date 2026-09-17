@@ -80,6 +80,11 @@
           "default": true,
           "description": "Delete exact skill and plugin completion tokens with one Backspace."
         },
+        "codexPromptLsp.atomicMove": {
+          "type": "boolean",
+          "default": true,
+          "description": "Move across exact skill and plugin completion tokens with the left and right arrow keys."
+        },
         "codexPromptLsp.highlightMentions": {
           "type": "boolean",
           "default": true,
@@ -92,6 +97,16 @@
         "command": "codexPromptLsp.atomicBackspace",
         "title": "Codex Prompt: Atomic Backspace",
         "enablement": "codexPromptLsp.active"
+      },
+      {
+        "command": "codexPromptLsp.atomicMoveLeft",
+        "title": "Codex Prompt: Move Left Across Mention",
+        "enablement": "codexPromptLsp.active"
+      },
+      {
+        "command": "codexPromptLsp.atomicMoveRight",
+        "title": "Codex Prompt: Move Right Across Mention",
+        "enablement": "codexPromptLsp.active"
       }
     ],
     "keybindings": [
@@ -100,6 +115,16 @@
         "key": "backspace",
         "mac": "backspace",
         "when": "editorTextFocus && codexPromptLsp.active && config.codexPromptLsp.atomicBackspace && !suggestWidgetVisible"
+      },
+      {
+        "command": "codexPromptLsp.atomicMoveLeft",
+        "key": "left",
+        "when": "editorTextFocus && codexPromptLsp.active && config.codexPromptLsp.atomicMove && !suggestWidgetVisible"
+      },
+      {
+        "command": "codexPromptLsp.atomicMoveRight",
+        "key": "right",
+        "when": "editorTextFocus && codexPromptLsp.active && config.codexPromptLsp.atomicMove && !suggestWidgetVisible"
       }
     ]
   },

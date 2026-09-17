@@ -21,9 +21,10 @@ markdown files) and attach the language server, which provides:
 - **Fuzzy filtering** — slash commands, skills, plugins, and files are filtered
   and ranked by relevance
 - **Distribution** — npm package and Mason registry
-- **Atomic completion deletion** — pressing Backspace at the end of an exact
-  `$skill` or `@plugin` completion removes the entire token; incomplete prefixes
-  continue to delete one character at a time
+- **Atomic mention movement and deletion** — the left and right arrow keys move
+  across exact `$skill` and `@plugin` completions as one token, and Backspace at
+  a token's end removes the entire token; incomplete prefixes continue to move
+  and delete one character at a time
 
 Hover on any of these shows its description.
 
@@ -38,14 +39,14 @@ The attached LSP client is named `codex-prompt` in both adapters.
 
 Adapters add editor-specific features on top of the shared language-server
 features, including document detection, mention highlighting, and atomic
-completion deletion.
+mention movement and deletion.
 
 <details>
 <summary>Neovim adapter</summary>
 
 The Neovim adapter is packaged as a plugin and includes automatic Codex buffer
 detection, `markdown.codex` filetype setup, mention highlighting, and atomic
-Backspace deletion.
+mention movement and Backspace deletion.
 
 ### Requirements
 
@@ -79,6 +80,8 @@ require("nvim-codex-lsp").setup({
   node_cmd = "node",
   -- Delete exact $skill and @plugin completions with one Backspace
   atomic_backspace = true,
+  -- Move across exact $skill and @plugin completions with arrow keys
+  atomic_move = true,
 })
 ```
 
@@ -114,10 +117,10 @@ make package-vscode
 The extension detects matching files under `$CODEX_HOME` and project `.codex`
 directories. Matching files use the `markdown` language ID and `.md` extension
 by default, so ordinary Markdown files are not attached. It provides the same
-completions, hover information, mention highlighting, and atomic Backspace
-behavior as the Neovim adapter. Detection and editor-only features can be
-configured independently, and advanced targets can be added with
-`codexPromptLsp.documentSelectors`.
+completions, hover information, mention highlighting, and atomic mention
+movement and Backspace behavior as the Neovim adapter. Detection and
+editor-only features can be configured independently, and advanced targets can
+be added with `codexPromptLsp.documentSelectors`.
 
 </details>
 

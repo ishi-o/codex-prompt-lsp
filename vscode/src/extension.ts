@@ -192,6 +192,32 @@ function tokenRangeBeforeCursor(
   return undefined;
 }
 
+function tokenRangeAfterCursor(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+): vscode.Range | undefined {
+  const line = document.lineAt(position.line).text;
+  const suffix = line.slice(position.character);
+  const preceding = line[position.character - 1] ?? "";
+
+  for (const token of [...completionTokens].sort((a, b) => b.length - a.length)) {
+    if (!suffix.startsWith(token)) continue;
+    if (/\w/.test(preceding)) continue;
+    const end = position.character + token.length;
+    const continuation = token.startsWith("$")
+      ? /[A-Za-z0-9_-]/
+      : /[A-Za-z0-9._/-]/;
+    if (continuation.test(line[end] ?? "")) continue;
+    return new vscode.Range(
+      position.line,
+      position.character,
+      position.line,
+      end,
+    );
+  }
+  return undefined;
+}
+
 async function atomicBackspace(): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor || !isCodexDocument(editor.document)) {
@@ -211,6 +237,78 @@ async function atomicBackspace(): Promise<void> {
   await editor.edit((edit) => {
     for (const range of ranges) edit.delete(range!);
   });
+}
+
+type MoveDirection = "left" | "right";
+
+function moveByCharacter(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  direction: MoveDirection,
+): vscode.Position {
+  if (direction === "left") {
+    if (position.character > 0) {
+      return position.translate(0, -1);
+    }
+    if (position.line > 0) {
+      return new vscode.Position(
+        position.line - 1,
+        document.lineAt(position.line - 1).text.length,
+      );
+    }
+    return position;
+  }
+
+  const lineLength = document.lineAt(position.line).text.length;
+  if (position.character < lineLength) {
+    return position.translate(0, 1);
+  }
+  if (position.line + 1 < document.lineCount) {
+    return new vscode.Position(position.line + 1, 0);
+  }
+  return position;
+}
+
+function moveSelection(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  direction: MoveDirection,
+): vscode.Selection {
+  if (!selection.isEmpty) {
+    const position = direction === "left" ? selection.start : selection.end;
+    return new vscode.Selection(position, position);
+  }
+
+  const range =
+    direction === "left"
+      ? tokenRangeBeforeCursor(document, selection.active)
+      : tokenRangeAfterCursor(document, selection.active);
+  const position = range
+    ? direction === "left"
+      ? range.start
+      : range.end
+    : moveByCharacter(document, selection.active, direction);
+  return new vscode.Selection(position, position);
+}
+
+async function atomicMove(direction: MoveDirection): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || !isCodexDocument(editor.document)) {
+    await vscode.commands.executeCommand(
+      direction === "left" ? "cursorLeft" : "cursorRight",
+    );
+    return;
+  }
+  if (!configuration().get<boolean>("atomicMove", true)) {
+    await vscode.commands.executeCommand(
+      direction === "left" ? "cursorLeft" : "cursorRight",
+    );
+    return;
+  }
+
+  editor.selections = editor.selections.map((selection) =>
+    moveSelection(editor.document, selection, direction),
+  );
 }
 
 function matchRanges(
@@ -283,6 +381,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     skillDecoration,
     pluginDecoration,
     vscode.commands.registerCommand(`${section}.atomicBackspace`, atomicBackspace),
+    vscode.commands.registerCommand(`${section}.atomicMoveLeft`, () =>
+      atomicMove("left"),
+    ),
+    vscode.commands.registerCommand(`${section}.atomicMoveRight`, () =>
+      atomicMove("right"),
+    ),
     vscode.window.onDidChangeActiveTextEditor(updateEditors),
     vscode.window.onDidChangeVisibleTextEditors(updateEditors),
     vscode.workspace.onDidChangeTextDocument((event) => {
