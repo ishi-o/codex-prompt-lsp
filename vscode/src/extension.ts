@@ -93,8 +93,7 @@ function captureCompletionTokens(
 ): void {
   const items = result instanceof vscode.CompletionList ? result.items : result;
   for (const item of items ?? []) {
-    const edit = item.textEdit;
-    const text = edit && "newText" in edit ? edit.newText : item.insertText;
+    const text = item.insertText;
     const value = typeof text === "string" ? text : text?.value;
     if (value?.startsWith("$") || value?.startsWith("@")) {
       completionTokens.add(value);

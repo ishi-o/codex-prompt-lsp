@@ -3475,7 +3475,7 @@ var require_main2 = __commonJS({
         ColorPresentation2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Is.string(candidate.label) && (Is.undefined(candidate.textEdit) || TextEdit.is(candidate)) && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, TextEdit.is));
+          return Is.objectLiteral(candidate) && Is.string(candidate.label) && (Is.undefined(candidate.textEdit) || TextEdit2.is(candidate)) && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, TextEdit2.is));
         }
         ColorPresentation2.is = is;
       })(ColorPresentation || (exports3.ColorPresentation = ColorPresentation = {}));
@@ -3594,26 +3594,26 @@ var require_main2 = __commonJS({
         }
         Command2.is = is;
       })(Command || (exports3.Command = Command = {}));
-      var TextEdit;
-      (function(TextEdit2) {
+      var TextEdit2;
+      (function(TextEdit3) {
         function replace(range, newText) {
           return { range, newText };
         }
-        TextEdit2.replace = replace;
+        TextEdit3.replace = replace;
         function insert(position, newText) {
           return { range: { start: position, end: position }, newText };
         }
-        TextEdit2.insert = insert;
+        TextEdit3.insert = insert;
         function del(range) {
           return { range, newText: "" };
         }
-        TextEdit2.del = del;
+        TextEdit3.del = del;
         function is(value) {
           var candidate = value;
           return Is.objectLiteral(candidate) && Is.string(candidate.newText) && Range.is(candidate.range);
         }
-        TextEdit2.is = is;
-      })(TextEdit || (exports3.TextEdit = TextEdit = {}));
+        TextEdit3.is = is;
+      })(TextEdit2 || (exports3.TextEdit = TextEdit2 = {}));
       var ChangeAnnotation;
       (function(ChangeAnnotation2) {
         function create(label, needsConfirmation, description) {
@@ -3657,7 +3657,7 @@ var require_main2 = __commonJS({
         AnnotatedTextEdit2.del = del;
         function is(value) {
           var candidate = value;
-          return TextEdit.is(candidate) && (ChangeAnnotation.is(candidate.annotationId) || ChangeAnnotationIdentifier.is(candidate.annotationId));
+          return TextEdit2.is(candidate) && (ChangeAnnotation.is(candidate.annotationId) || ChangeAnnotationIdentifier.is(candidate.annotationId));
         }
         AnnotatedTextEdit2.is = is;
       })(AnnotatedTextEdit || (exports3.AnnotatedTextEdit = AnnotatedTextEdit = {}));
@@ -3765,7 +3765,7 @@ var require_main2 = __commonJS({
             var edit;
             var id;
             if (annotation === void 0) {
-              edit = TextEdit.insert(position, newText);
+              edit = TextEdit2.insert(position, newText);
             } else if (ChangeAnnotationIdentifier.is(annotation)) {
               id = annotation;
               edit = AnnotatedTextEdit.insert(position, newText, annotation);
@@ -3783,7 +3783,7 @@ var require_main2 = __commonJS({
             var edit;
             var id;
             if (annotation === void 0) {
-              edit = TextEdit.replace(range, newText);
+              edit = TextEdit2.replace(range, newText);
             } else if (ChangeAnnotationIdentifier.is(annotation)) {
               id = annotation;
               edit = AnnotatedTextEdit.replace(range, newText, annotation);
@@ -3801,7 +3801,7 @@ var require_main2 = __commonJS({
             var edit;
             var id;
             if (annotation === void 0) {
-              edit = TextEdit.del(range);
+              edit = TextEdit2.del(range);
             } else if (ChangeAnnotationIdentifier.is(annotation)) {
               id = annotation;
               edit = AnnotatedTextEdit.del(range, annotation);
@@ -4567,7 +4567,7 @@ var require_main2 = __commonJS({
         InlayHint2.create = create;
         function is(value) {
           var candidate = value;
-          return Is.objectLiteral(candidate) && Position2.is(candidate.position) && (Is.string(candidate.label) || Is.typedArray(candidate.label, InlayHintLabelPart.is)) && (candidate.kind === void 0 || InlayHintKind.is(candidate.kind)) && candidate.textEdits === void 0 || Is.typedArray(candidate.textEdits, TextEdit.is) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.paddingLeft === void 0 || Is.boolean(candidate.paddingLeft)) && (candidate.paddingRight === void 0 || Is.boolean(candidate.paddingRight));
+          return Is.objectLiteral(candidate) && Position2.is(candidate.position) && (Is.string(candidate.label) || Is.typedArray(candidate.label, InlayHintLabelPart.is)) && (candidate.kind === void 0 || InlayHintKind.is(candidate.kind)) && candidate.textEdits === void 0 || Is.typedArray(candidate.textEdits, TextEdit2.is) && (candidate.tooltip === void 0 || Is.string(candidate.tooltip) || MarkupContent.is(candidate.tooltip)) && (candidate.paddingLeft === void 0 || Is.boolean(candidate.paddingLeft)) && (candidate.paddingRight === void 0 || Is.boolean(candidate.paddingRight));
         }
         InlayHint2.is = is;
       })(InlayHint || (exports3.InlayHint = InlayHint = {}));
@@ -10077,7 +10077,7 @@ function getTriggerContext(lineText) {
   const slashMatch = lineText.match(/(?:^|\s)(\/[\w-]*)$/);
   if (slashMatch) {
     return {
-      type: "slash",
+      type: "slash" /* Slash */,
       prefix: slashMatch[1],
       start: lineText.length - slashMatch[1].length
     };
@@ -10085,7 +10085,7 @@ function getTriggerContext(lineText) {
   const skillMatch = lineText.match(/(?:^|\s)\$([\w-]*)$/);
   if (skillMatch) {
     return {
-      type: "skill",
+      type: "skill" /* Skill */,
       prefix: skillMatch[1],
       start: lineText.length - skillMatch[1].length - 1
     };
@@ -10093,97 +10093,124 @@ function getTriggerContext(lineText) {
   const pluginMatch = lineText.match(/@(\S*)$/);
   if (pluginMatch) {
     return {
-      type: "plugin",
+      type: "mention" /* Mention */,
       prefix: pluginMatch[1],
       start: pluginMatch.index ?? 0
     };
   }
-  return { type: "none" };
+  return { type: "none" /* None */ };
 }
+var AT_PREFIX = "@";
+var SKILL_PREFIX = "$";
+var COMPLETION_TRAILING_SPACE = " ";
+var MAX_COMPLETION_ITEMS = 100;
+var SORT_TEXT_WIDTH = 8;
 function replaceToken(position, tokenStart, newText) {
   return {
     range: {
       start: { line: position.line, character: tokenStart },
       end: position
     },
-    newText
+    newText: newText + COMPLETION_TRAILING_SPACE
   };
 }
-var MAX_COMPLETION_ITEMS = 100;
 function fuzzyFind(items, query, selector) {
-  return new Fzf(items, {
-    selector,
+  const finder = new Fzf(items, {
+    selector: (item) => selector(item),
     limit: MAX_COMPLETION_ITEMS,
+    casing: "case-insensitive",
     forward: false
-  }).find(query).map((result) => result.item);
+  });
+  return finder.find(query).map((result) => result.item);
 }
-function serverRankedMetadata(filterText, index) {
+function completionMetadata(filterText, index, group) {
   const metadata = {
-    sortText: index.toString().padStart(8, "0")
+    sortText: `${group}:${index.toString().padStart(SORT_TEXT_WIDTH, "0")}`
   };
   if (filterText) metadata.filterText = filterText;
   return metadata;
 }
+function pluginSearchText(plugin) {
+  return [plugin.name, plugin.title, ...plugin.aliases, plugin.description].filter(Boolean).join(" ");
+}
 function getSlashCompletions(prefix, commands, position, tokenStart) {
   return fuzzyFind(commands, prefix, (cmd) => cmd.name).map((cmd, index) => ({
     label: cmd.name,
-    kind: import_node.CompletionItemKind.Function,
+    // Slash commands are commands, not callable functions. Using Function
+    // makes some clients append `()` to the inserted command.
+    kind: import_node.CompletionItemKind.Keyword,
     detail: cmd.detail,
     // Documentation deferred to completionItem/resolve
-    data: { type: "slash", name: cmd.name },
+    data: { type: "slash" /* Slash */, name: cmd.name },
     textEdit: replaceToken(position, tokenStart, cmd.name),
-    ...serverRankedMetadata(prefix, index)
+    ...completionMetadata(prefix, index, "slash" /* Slash */)
   }));
 }
 function getSkillCompletions(prefix, skills, position, tokenStart) {
   return fuzzyFind(skills, prefix, (skill) => skill.name).map(
     (skill, index) => ({
-      label: "$" + skill.name,
+      label: SKILL_PREFIX + skill.name,
       kind: import_node.CompletionItemKind.Class,
       detail: skill.description || "Skill",
-      data: { type: "skill", name: skill.name },
-      textEdit: replaceToken(position, tokenStart, "$" + skill.name),
-      ...serverRankedMetadata("$" + prefix, index)
+      data: { type: "skill" /* Skill */, name: skill.name },
+      textEdit: replaceToken(position, tokenStart, SKILL_PREFIX + skill.name),
+      ...completionMetadata(
+        SKILL_PREFIX + prefix,
+        index,
+        "skill" /* Skill */
+      )
     })
   );
 }
 function getSkillCompletionsAt(position, tokenStart, prefix, skills) {
   return fuzzyFind(skills, prefix, (skill) => skill.name).map(
     (skill, index) => ({
-      label: "$" + skill.name,
+      label: SKILL_PREFIX + skill.name,
       kind: import_node.CompletionItemKind.Class,
       detail: skill.description || "Skill",
-      data: { type: "skill", name: skill.name },
-      textEdit: replaceToken(position, tokenStart, "$" + skill.name),
-      ...serverRankedMetadata("@" + prefix, index)
+      data: { type: "skill" /* Skill */, name: skill.name },
+      textEdit: replaceToken(position, tokenStart, SKILL_PREFIX + skill.name),
+      ...completionMetadata(
+        AT_PREFIX + prefix,
+        index,
+        "skill" /* Skill */
+      )
     })
   );
 }
 function getPluginCompletions(prefix, plugins, position, tokenStart) {
-  return fuzzyFind(plugins, prefix, (plugin) => plugin.name).map(
-    (plugin, index) => ({
-      label: "@" + plugin.name,
-      kind: import_node.CompletionItemKind.Module,
-      detail: plugin.id,
-      data: { type: "plugin", name: plugin.name },
-      textEdit: replaceToken(position, tokenStart, "@" + plugin.name),
-      ...serverRankedMetadata("@" + prefix, index)
-    })
-  );
+  return fuzzyFind(plugins, prefix, pluginSearchText).map((plugin, index) => ({
+    label: AT_PREFIX + plugin.name,
+    kind: import_node.CompletionItemKind.Module,
+    detail: plugin.id,
+    data: { type: "plugin" /* Plugin */, name: plugin.name },
+    textEdit: replaceToken(position, tokenStart, AT_PREFIX + plugin.name),
+    ...completionMetadata(
+      AT_PREFIX + prefix,
+      index,
+      "plugin" /* Plugin */
+    )
+  }));
 }
 function getFileCompletions(position, tokenStart, prefix, rootPath2) {
   const items = [];
   try {
-    for (const [index, entry] of listEntries(rootPath2).find(prefix).map((result) => result.item).entries()) {
+    const matches = getFileFinder(rootPath2).find(prefix);
+    for (const [index, match] of matches.entries()) {
+      const entry = match.item;
       items.push({
-        label: "@" + abbreviatedPath(entry.relPath),
+        label: AT_PREFIX + abbreviatedPath(entry.relPath),
         kind: entry.isDir ? import_node.CompletionItemKind.Folder : import_node.CompletionItemKind.File,
         detail: entry.relPath,
-        data: { type: "file", path: entry.relPath },
+        data: { type: "file" /* File */, path: entry.relPath },
         // Selecting a file mention consumes the `@` and writes the whole
         // path — the sigil is prompt state in the Codex composer, not text.
         textEdit: replaceToken(position, tokenStart, entry.relPath),
-        ...serverRankedMetadata("@" + prefix, index)
+        ...completionMetadata(
+          AT_PREFIX + prefix,
+          index,
+          "file" /* File */
+        )
       });
       if (items.length >= MAX_COMPLETION_ITEMS) break;
     }
@@ -10273,10 +10300,7 @@ function walkDir(rootPath2, dir, results) {
     return;
   }
   for (const entry of entries) {
-    if (entry.isDirectory() && IGNORED_DIRS.has(entry.name)) continue;
-    if (entry.isFile() && (IGNORED_FILES.has(entry.name) || IGNORED_FILE_SUFFIXES.some((suffix) => entry.name.endsWith(suffix)))) {
-      continue;
-    }
+    if (isIgnoredEntry(entry)) continue;
     const fullPath = path.join(dir, entry.name);
     results.push({
       relPath: path.relative(rootPath2, fullPath).split(path.sep).join("/"),
@@ -10288,12 +10312,17 @@ function walkDir(rootPath2, dir, results) {
     if (results.length >= MAX_WALK_ENTRIES) return;
   }
 }
+function isIgnoredEntry(entry) {
+  if (entry.isDirectory()) return IGNORED_DIRS.has(entry.name);
+  if (!entry.isFile()) return false;
+  return IGNORED_FILES.has(entry.name) || IGNORED_FILE_SUFFIXES.some((suffix) => entry.name.endsWith(suffix));
+}
 var entryCache = /* @__PURE__ */ new Map();
 var ENTRY_CACHE_TTL_MS = 2e3;
 var ENTRY_CACHE_MAX = 16;
-function listEntries(rootPath2) {
+function getFileFinder(rootPath2) {
   const cached = entryCache.get(rootPath2);
-  if (cached && cached.expiresAt > Date.now()) return cached.entries;
+  if (cached && cached.expiresAt > Date.now()) return cached.finder;
   const entries = [];
   walkDir(rootPath2, rootPath2, entries);
   entries.sort((left, right) => left.relPath.localeCompare(right.relPath));
@@ -10305,7 +10334,7 @@ function listEntries(rootPath2) {
   });
   entryCache.set(rootPath2, {
     expiresAt: Date.now() + ENTRY_CACHE_TTL_MS,
-    entries: finder
+    finder
   });
   if (entryCache.size > ENTRY_CACHE_MAX) {
     const oldest = entryCache.keys().next().value;
@@ -10313,52 +10342,62 @@ function listEntries(rootPath2) {
   }
   return finder;
 }
+function getMentionCompletions(prefix, position, tokenStart, rootPath2, skills, plugins) {
+  const pluginItems = getPluginCompletions(
+    prefix,
+    plugins,
+    position,
+    tokenStart
+  );
+  const skillItems = getSkillCompletionsAt(
+    position,
+    tokenStart,
+    prefix,
+    skills
+  );
+  if (!prefix) return [...pluginItems, ...skillItems];
+  return [
+    ...pluginItems,
+    ...skillItems,
+    ...getFileCompletions(position, tokenStart, prefix, rootPath2)
+  ];
+}
 async function getCompletions(doc, position, rootPath2, commands, skills, plugins) {
   const lineText = doc.getText({
     start: { line: position.line, character: 0 },
     end: position
   });
   const ctx = getTriggerContext(lineText);
-  if (ctx.type === "slash") {
+  if (ctx.type === "slash" /* Slash */) {
     return {
       isIncomplete: true,
       items: getSlashCompletions(ctx.prefix, commands, position, ctx.start)
     };
   }
-  if (ctx.type === "skill") {
+  if (ctx.type === "skill" /* Skill */) {
     return {
       isIncomplete: true,
       items: getSkillCompletions(ctx.prefix, skills, position, ctx.start)
     };
   }
-  if (ctx.type === "plugin") {
-    const pluginItems = getPluginCompletions(
-      ctx.prefix,
-      plugins,
-      position,
-      ctx.start
-    );
-    const skillItems = getSkillCompletionsAt(
-      position,
-      ctx.start,
-      ctx.prefix,
-      skills
-    );
-    const fileItems = getFileCompletions(
-      position,
-      ctx.start,
-      ctx.prefix,
-      rootPath2
-    );
+  if (ctx.type === "mention" /* Mention */) {
     return {
       isIncomplete: true,
-      items: [...pluginItems, ...skillItems, ...fileItems]
+      items: getMentionCompletions(
+        ctx.prefix,
+        position,
+        ctx.start,
+        rootPath2,
+        skills,
+        plugins
+      )
     };
   }
   return { isIncomplete: false, items: [] };
 }
 
 // src/hover.ts
+var TOKEN_CHARACTER = /[-\w/$@]/;
 function getWordRange(doc, position) {
   const line = doc.getText({
     start: { line: position.line, character: 0 },
@@ -10366,8 +10405,8 @@ function getWordRange(doc, position) {
   });
   let start = position.character;
   let end = position.character;
-  while (start > 0 && /[-\w/$@]/.test(line[start - 1])) start--;
-  while (end < line.length && /[-\w/$@]/.test(line[end])) end++;
+  while (start > 0 && TOKEN_CHARACTER.test(line[start - 1])) start--;
+  while (end < line.length && TOKEN_CHARACTER.test(line[end])) end++;
   return {
     word: line.slice(start, end),
     range: {
@@ -10376,48 +10415,48 @@ function getWordRange(doc, position) {
     }
   };
 }
+function findNamed(items, name, getName) {
+  return items.find((item) => getName(item) === name);
+}
+function markdownHover(value, range) {
+  return {
+    contents: { kind: "markdown", value },
+    range
+  };
+}
 function getHover(doc, position, commands, skills, plugins) {
   const { word, range } = getWordRange(doc, position);
   if (word.startsWith("/")) {
-    const cmd = commands.find((c) => c.name === word);
+    const cmd = findNamed(commands, word, (command) => command.name);
     if (!cmd) return null;
-    return {
-      contents: {
-        kind: "markdown",
-        value: `**${cmd.name}** \u2014 ${cmd.detail}
+    return markdownHover(
+      `**${cmd.name}** \u2014 ${cmd.detail}
 
-${cmd.documentation}`
-      },
+${cmd.documentation}`,
       range
-    };
+    );
   }
   if (word.startsWith("$")) {
-    const skill = skills.find((s) => s.name === word.slice(1));
+    const skill = findNamed(skills, word.slice(1), (item) => item.name);
     if (!skill) return null;
-    return {
-      contents: {
-        kind: "markdown",
-        value: `**$${skill.name}** \u2014 Skill
+    return markdownHover(
+      `**$${skill.name}** \u2014 Skill
 
 ${skill.description}
 
-Location: \`${skill.dir}\``
-      },
+Location: \`${skill.dir}\``,
       range
-    };
+    );
   }
   if (word.startsWith("@")) {
-    const plugin = plugins.find((p) => p.name === word.slice(1));
+    const plugin = findNamed(plugins, word.slice(1), (item) => item.name);
     if (!plugin) return null;
-    return {
-      contents: {
-        kind: "markdown",
-        value: `**@${plugin.name}** \u2014 Plugin
+    return markdownHover(
+      `**@${plugin.name}** \u2014 Plugin
 
-Plugin ID: \`${plugin.id}\``
-      },
+Plugin ID: \`${plugin.id}\``,
       range
-    };
+    );
   }
   return null;
 }
@@ -10685,43 +10724,165 @@ ${desc}`
   }
   return prompts;
 }
+function isRecord(value) {
+  return typeof value === "object" && value !== null;
+}
+function asRecord(value) {
+  return isRecord(value) ? value : void 0;
+}
+function readJsonRecord(filePath) {
+  try {
+    return asRecord(JSON.parse(fs2.readFileSync(filePath, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function listDirectories(dir) {
+  try {
+    return fs2.readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory());
+  } catch {
+    return [];
+  }
+}
+function findCachedPluginManifest(pluginName) {
+  if (!pluginName || path2.basename(pluginName) !== pluginName) return void 0;
+  const cacheRoot = path2.join(codexHome(), "plugins", "cache");
+  for (const marketplace of listDirectories(cacheRoot)) {
+    const pluginRoot = path2.join(cacheRoot, marketplace.name, pluginName);
+    const versions = listDirectories(pluginRoot).sort(
+      (left, right) => right.name.localeCompare(left.name)
+    );
+    for (const version of versions) {
+      const manifestPath = path2.join(
+        pluginRoot,
+        version.name,
+        ".codex-plugin",
+        "plugin.json"
+      );
+      const manifest = readJsonRecord(manifestPath);
+      if (manifest) return manifest;
+    }
+  }
+  return void 0;
+}
+var pluginManifestCache = /* @__PURE__ */ new Map();
+function readCachedPluginManifest(pluginName) {
+  if (pluginManifestCache.has(pluginName)) {
+    return pluginManifestCache.get(pluginName) ?? void 0;
+  }
+  const manifest = findCachedPluginManifest(pluginName);
+  pluginManifestCache.set(pluginName, manifest ?? null);
+  return manifest;
+}
+function titleCasePluginName(name) {
+  return name.split("-").map((part) => part ? part[0].toUpperCase() + part.slice(1) : part).join("-");
+}
+function firstString(...values) {
+  return values.find(
+    (value) => typeof value === "string" && value.length > 0
+  ) ?? "";
+}
+function getPluginMetadata(plugin, cachedManifest) {
+  const pluginInterface = asRecord(plugin.interface);
+  const release = asRecord(plugin.release);
+  const releaseInterface = asRecord(release?.interface);
+  const cachedInterface = asRecord(cachedManifest?.interface);
+  return {
+    displayName: firstString(
+      plugin.display_name,
+      plugin.displayName,
+      plugin.title,
+      release?.display_name,
+      release?.displayName,
+      release?.title,
+      pluginInterface?.displayName,
+      pluginInterface?.display_name,
+      pluginInterface?.title,
+      releaseInterface?.displayName,
+      releaseInterface?.display_name,
+      releaseInterface?.title,
+      cachedManifest?.display_name,
+      cachedManifest?.displayName,
+      cachedManifest?.title,
+      cachedInterface?.displayName,
+      cachedInterface?.display_name,
+      cachedInterface?.title
+    ),
+    description: firstString(
+      plugin.description,
+      plugin.short_description,
+      plugin.shortDescription,
+      release?.description,
+      release?.short_description,
+      release?.shortDescription,
+      releaseInterface?.shortDescription,
+      releaseInterface?.short_description,
+      pluginInterface?.shortDescription,
+      pluginInterface?.short_description,
+      cachedManifest?.description,
+      cachedManifest?.short_description,
+      cachedManifest?.shortDescription,
+      cachedInterface?.shortDescription,
+      cachedInterface?.short_description
+    )
+  };
+}
+function uniqueNonEmpty(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+function createPlugin(raw) {
+  const id = firstString(raw.id, raw.name);
+  const stableName = firstString(raw.name, id.split("@")[0]);
+  if (!id || !stableName) return void 0;
+  const cachedManifest = readCachedPluginManifest(stableName);
+  const metadata = getPluginMetadata(raw, cachedManifest);
+  const name = titleCasePluginName(stableName);
+  return {
+    name,
+    title: metadata.displayName,
+    aliases: uniqueNonEmpty([
+      stableName,
+      id.split("@")[0],
+      name,
+      metadata.displayName
+    ]),
+    id,
+    description: metadata.description
+  };
+}
+function parseInstalledPlugins(stdout) {
+  try {
+    const raw = asRecord(JSON.parse(stdout));
+    if (!raw || !Array.isArray(raw.installed)) return [];
+    return raw.installed.filter(isRecord).map(createPlugin).filter((plugin) => plugin !== void 0);
+  } catch {
+    return [];
+  }
+}
+var PLUGIN_DISCOVERY_TIMEOUT_MS = 3e3;
 function discoverPlugins() {
   return new Promise((resolve) => {
     const child = (0, import_child_process.spawn)("codex", ["plugin", "list", "--json"], {
       stdio: ["ignore", "pipe", "ignore"]
     });
     let stdout = "";
+    let settled = false;
+    const finish = (plugins) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(plugins);
+    };
     const timer = setTimeout(() => {
       child.kill();
-      resolve([]);
-    }, 3e3);
+      finish([]);
+    }, PLUGIN_DISCOVERY_TIMEOUT_MS);
     child.stdout?.on("data", (chunk) => {
       stdout += chunk;
     });
-    child.on("error", () => {
-      clearTimeout(timer);
-      resolve([]);
-    });
+    child.on("error", () => finish([]));
     child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code !== 0 || !stdout) return resolve([]);
-      try {
-        const raw = JSON.parse(stdout);
-        const installed = raw.installed ?? [];
-        resolve(
-          installed.map((p) => {
-            const id = String(p.id ?? p.name ?? "");
-            const display = String(p.display_name ?? p.name ?? id);
-            return {
-              name: display || id.split("@")[0],
-              id,
-              description: String(p.description ?? p.short_description ?? "")
-            };
-          })
-        );
-      } catch {
-        resolve([]);
-      }
+      finish(code === 0 ? parseInstalledPlugins(stdout) : []);
     });
   });
 }
@@ -10729,38 +10890,42 @@ function discoverPlugins() {
 // src/server.ts
 var connection = (0, import_node2.createConnection)(import_node2.ProposedFeatures.all);
 var documents = new import_node2.TextDocuments(TextDocument);
+var TRIGGER_CHARACTERS = ["/", "$", "@"];
 var rootPath = process.cwd();
 var allCommands = [];
 var allSkills = [];
 var allPlugins = [];
-connection.onInitialize((params) => {
+function mergeCommands(customPrompts) {
+  const overriddenNames = new Set(customPrompts.map((prompt) => prompt.name));
+  return [
+    ...BUILTIN_COMMANDS.filter((command) => !overriddenNames.has(command.name)),
+    ...customPrompts
+  ];
+}
+function completionTokens(skills, plugins) {
+  return [
+    ...skills.map((skill) => "$" + skill.name),
+    ...plugins.map((plugin) => "@" + plugin.name)
+  ];
+}
+connection.onInitialize(async (params) => {
   const rootUri = params.workspaceFolders?.[0]?.uri;
   if (rootUri?.startsWith("file:")) {
     rootPath = (0, import_node_url.fileURLToPath)(rootUri);
   }
-  const customPrompts = discoverCustomPrompts();
-  const overrideNames = new Set(customPrompts.map((p) => p.name));
-  allCommands = [
-    ...BUILTIN_COMMANDS.filter((c) => !overrideNames.has(c.name)),
-    ...customPrompts
-  ];
+  allCommands = mergeCommands(discoverCustomPrompts());
   allSkills = discoverSkills(rootPath);
-  void discoverPlugins().then((plugins) => {
-    allPlugins = plugins;
-  });
+  allPlugins = await discoverPlugins();
   return {
     capabilities: {
       textDocumentSync: import_node2.TextDocumentSyncKind.Incremental,
       completionProvider: {
-        triggerCharacters: ["/", "$", "@"],
+        triggerCharacters: TRIGGER_CHARACTERS,
         resolveProvider: true
       },
       hoverProvider: true,
       experimental: {
-        codexCompletionTokens: [
-          ...allSkills.map((skill) => "$" + skill.name),
-          ...allPlugins.map((plugin) => "@" + plugin.name)
-        ]
+        codexCompletionTokens: completionTokens(allSkills, allPlugins)
       }
     }
   };
@@ -10778,32 +10943,48 @@ connection.onCompletion(async (params) => {
   );
 });
 connection.onCompletionResolve((item) => {
-  if (item.data?.type === "slash") {
-    const cmd = allCommands.find((c) => c.name === item.data.name);
-    if (cmd) {
-      item.documentation = { kind: "markdown", value: cmd.documentation };
+  switch (item.data?.type) {
+    case "slash" /* Slash */: {
+      const command = allCommands.find(
+        (candidate) => candidate.name === item.data.name
+      );
+      if (command) {
+        item.documentation = {
+          kind: "markdown",
+          value: command.documentation
+        };
+      }
+      break;
     }
-  } else if (item.data?.type === "skill") {
-    const skill = allSkills.find((s) => s.name === item.data.name);
-    if (skill) {
-      item.documentation = {
-        kind: "markdown",
-        value: `**$${skill.name}** \u2014 Skill
+    case "skill" /* Skill */: {
+      const skill = allSkills.find(
+        (candidate) => candidate.name === item.data.name
+      );
+      if (skill) {
+        item.documentation = {
+          kind: "markdown",
+          value: `**$${skill.name}** \u2014 Skill
 
 ${skill.description}
 
 Location: \`${skill.dir}\``
-      };
+        };
+      }
+      break;
     }
-  } else if (item.data?.type === "plugin") {
-    const plugin = allPlugins.find((p) => p.name === item.data.name);
-    if (plugin) {
-      item.documentation = {
-        kind: "markdown",
-        value: `**@${plugin.name}** \u2014 Plugin
+    case "plugin" /* Plugin */: {
+      const plugin = allPlugins.find(
+        (candidate) => candidate.name === item.data.name
+      );
+      if (plugin) {
+        item.documentation = {
+          kind: "markdown",
+          value: `**@${plugin.name}** \u2014 Plugin
 
 Plugin ID: \`${plugin.id}\``
-      };
+        };
+      }
+      break;
     }
   }
   return item;

@@ -7,7 +7,7 @@ import {
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileURLToPath } from "node:url";
-import { getCompletions } from "./completion";
+import { CompletionType, getCompletions } from "./completion";
 import { getHover } from "./hover";
 import { BUILTIN_COMMANDS, SlashCommand } from "./commands";
 import {
@@ -20,6 +20,7 @@ import {
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
+const TRIGGER_CHARACTERS = ["/", "$", "@"];
 
 let rootPath = process.cwd();
 
@@ -28,40 +29,45 @@ let allCommands: SlashCommand[] = [];
 let allSkills: Skill[] = [];
 let allPlugins: Plugin[] = [];
 
-connection.onInitialize((params): InitializeResult => {
+function mergeCommands(customPrompts: SlashCommand[]): SlashCommand[] {
+  const overriddenNames = new Set(customPrompts.map((prompt) => prompt.name));
+  return [
+    ...BUILTIN_COMMANDS.filter((command) => !overriddenNames.has(command.name)),
+    ...customPrompts,
+  ];
+}
+
+function completionTokens(skills: Skill[], plugins: Plugin[]): string[] {
+  return [
+    ...skills.map((skill) => "$" + skill.name),
+    ...plugins.map((plugin) => "@" + plugin.name),
+  ];
+}
+
+connection.onInitialize(async (params): Promise<InitializeResult> => {
   const rootUri = params.workspaceFolders?.[0]?.uri;
   if (rootUri?.startsWith("file:")) {
     rootPath = fileURLToPath(rootUri);
   }
 
   // Custom prompts override built-ins with the same name.
-  const customPrompts = discoverCustomPrompts();
-  const overrideNames = new Set(customPrompts.map((p) => p.name));
-  allCommands = [
-    ...BUILTIN_COMMANDS.filter((c) => !overrideNames.has(c.name)),
-    ...customPrompts,
-  ];
+  allCommands = mergeCommands(discoverCustomPrompts());
 
   allSkills = discoverSkills(rootPath);
-  // Async so a hung Codex CLI can't block initialize; plugin completions
-  // stay empty until it resolves.
-  void discoverPlugins().then((plugins) => {
-    allPlugins = plugins;
-  });
+  // Discover plugins before completing initialization so the first completion
+  // request and the atomic completion token list include installed plugins.
+  allPlugins = await discoverPlugins();
 
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       completionProvider: {
-        triggerCharacters: ["/", "$", "@"],
+        triggerCharacters: TRIGGER_CHARACTERS,
         resolveProvider: true,
       },
       hoverProvider: true,
       experimental: {
-        codexCompletionTokens: [
-          ...allSkills.map((skill) => "$" + skill.name),
-          ...allPlugins.map((plugin) => "@" + plugin.name),
-        ],
+        codexCompletionTokens: completionTokens(allSkills, allPlugins),
       },
     },
   };
@@ -81,26 +87,42 @@ connection.onCompletion(async (params) => {
 });
 
 connection.onCompletionResolve((item) => {
-  if (item.data?.type === "slash") {
-    const cmd = allCommands.find((c) => c.name === item.data.name);
-    if (cmd) {
-      item.documentation = { kind: "markdown", value: cmd.documentation };
+  switch (item.data?.type) {
+    case CompletionType.Slash: {
+      const command = allCommands.find(
+        (candidate) => candidate.name === item.data.name,
+      );
+      if (command) {
+        item.documentation = {
+          kind: "markdown",
+          value: command.documentation,
+        };
+      }
+      break;
     }
-  } else if (item.data?.type === "skill") {
-    const skill = allSkills.find((s) => s.name === item.data.name);
-    if (skill) {
-      item.documentation = {
-        kind: "markdown",
-        value: `**$${skill.name}** — Skill\n\n${skill.description}\n\nLocation: \`${skill.dir}\``,
-      };
+    case CompletionType.Skill: {
+      const skill = allSkills.find(
+        (candidate) => candidate.name === item.data.name,
+      );
+      if (skill) {
+        item.documentation = {
+          kind: "markdown",
+          value: `**$${skill.name}** — Skill\n\n${skill.description}\n\nLocation: \`${skill.dir}\``,
+        };
+      }
+      break;
     }
-  } else if (item.data?.type === "plugin") {
-    const plugin = allPlugins.find((p) => p.name === item.data.name);
-    if (plugin) {
-      item.documentation = {
-        kind: "markdown",
-        value: `**@${plugin.name}** — Plugin\n\nPlugin ID: \`${plugin.id}\``,
-      };
+    case CompletionType.Plugin: {
+      const plugin = allPlugins.find(
+        (candidate) => candidate.name === item.data.name,
+      );
+      if (plugin) {
+        item.documentation = {
+          kind: "markdown",
+          value: `**@${plugin.name}** — Plugin\n\nPlugin ID: \`${plugin.id}\``,
+        };
+      }
+      break;
     }
   }
   return item;

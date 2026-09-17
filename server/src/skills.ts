@@ -157,12 +157,194 @@ export function discoverCustomPrompts(): SlashCommand[] {
 }
 
 export interface Plugin {
-  /** Display name — the part before `@` in the plugin id */
+  /** Canonical mention name used when inserting a plugin mention. */
   name: string;
+  /** Human-readable catalog title used for fuzzy search. */
+  title: string;
+  /** Alternate names accepted as fuzzy-search aliases. */
+  aliases: string[];
   /** Full plugin id, e.g. "linear@openai-curated" */
   id: string;
   description: string;
 }
+
+type JsonRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function asRecord(value: unknown): JsonRecord | undefined {
+  return isRecord(value) ? value : undefined;
+}
+
+function readJsonRecord(filePath: string): JsonRecord | undefined {
+  try {
+    return asRecord(JSON.parse(fs.readFileSync(filePath, "utf8")));
+  } catch {
+    return undefined;
+  }
+}
+
+function listDirectories(dir: string): fs.Dirent[] {
+  try {
+    return fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory());
+  } catch {
+    return [];
+  }
+}
+
+/** Read a cached plugin manifest when the CLI list omits display metadata. */
+function findCachedPluginManifest(pluginName: string): JsonRecord | undefined {
+  if (!pluginName || path.basename(pluginName) !== pluginName) return undefined;
+
+  const cacheRoot = path.join(codexHome(), "plugins", "cache");
+  for (const marketplace of listDirectories(cacheRoot)) {
+    const pluginRoot = path.join(cacheRoot, marketplace.name, pluginName);
+    const versions = listDirectories(pluginRoot).sort((left, right) =>
+      right.name.localeCompare(left.name),
+    );
+    for (const version of versions) {
+      const manifestPath = path.join(
+        pluginRoot,
+        version.name,
+        ".codex-plugin",
+        "plugin.json",
+      );
+      const manifest = readJsonRecord(manifestPath);
+      if (manifest) return manifest;
+    }
+  }
+
+  return undefined;
+}
+
+const pluginManifestCache = new Map<string, JsonRecord | null>();
+
+function readCachedPluginManifest(pluginName: string): JsonRecord | undefined {
+  if (pluginManifestCache.has(pluginName)) {
+    return pluginManifestCache.get(pluginName) ?? undefined;
+  }
+
+  const manifest = findCachedPluginManifest(pluginName);
+  pluginManifestCache.set(pluginName, manifest ?? null);
+  return manifest;
+}
+
+function titleCasePluginName(name: string): string {
+  return name
+    .split("-")
+    .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+    .join("-");
+}
+
+function firstString(...values: unknown[]): string {
+  return (
+    values.find(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    ) ?? ""
+  );
+}
+
+interface PluginMetadata {
+  displayName: string;
+  description: string;
+}
+
+function getPluginMetadata(
+  plugin: JsonRecord,
+  cachedManifest: JsonRecord | undefined,
+): PluginMetadata {
+  const pluginInterface = asRecord(plugin.interface);
+  const release = asRecord(plugin.release);
+  const releaseInterface = asRecord(release?.interface);
+  const cachedInterface = asRecord(cachedManifest?.interface);
+
+  return {
+    displayName: firstString(
+      plugin.display_name,
+      plugin.displayName,
+      plugin.title,
+      release?.display_name,
+      release?.displayName,
+      release?.title,
+      pluginInterface?.displayName,
+      pluginInterface?.display_name,
+      pluginInterface?.title,
+      releaseInterface?.displayName,
+      releaseInterface?.display_name,
+      releaseInterface?.title,
+      cachedManifest?.display_name,
+      cachedManifest?.displayName,
+      cachedManifest?.title,
+      cachedInterface?.displayName,
+      cachedInterface?.display_name,
+      cachedInterface?.title,
+    ),
+    description: firstString(
+      plugin.description,
+      plugin.short_description,
+      plugin.shortDescription,
+      release?.description,
+      release?.short_description,
+      release?.shortDescription,
+      releaseInterface?.shortDescription,
+      releaseInterface?.short_description,
+      pluginInterface?.shortDescription,
+      pluginInterface?.short_description,
+      cachedManifest?.description,
+      cachedManifest?.short_description,
+      cachedManifest?.shortDescription,
+      cachedInterface?.shortDescription,
+      cachedInterface?.short_description,
+    ),
+  };
+}
+
+function uniqueNonEmpty(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function createPlugin(raw: JsonRecord): Plugin | undefined {
+  const id = firstString(raw.id, raw.name);
+  const stableName = firstString(raw.name, id.split("@")[0]);
+  if (!id || !stableName) return undefined;
+
+  const cachedManifest = readCachedPluginManifest(stableName);
+  const metadata = getPluginMetadata(raw, cachedManifest);
+  const name = titleCasePluginName(stableName);
+
+  return {
+    name,
+    title: metadata.displayName,
+    aliases: uniqueNonEmpty([
+      stableName,
+      id.split("@")[0],
+      name,
+      metadata.displayName,
+    ]),
+    id,
+    description: metadata.description,
+  };
+}
+
+function parseInstalledPlugins(stdout: string): Plugin[] {
+  try {
+    const raw = asRecord(JSON.parse(stdout));
+    if (!raw || !Array.isArray(raw.installed)) return [];
+
+    return raw.installed
+      .filter(isRecord)
+      .map(createPlugin)
+      .filter((plugin): plugin is Plugin => plugin !== undefined);
+  } catch {
+    return [];
+  }
+}
+
+const PLUGIN_DISCOVERY_TIMEOUT_MS = 3000;
 
 /**
  * Run `codex plugin list --json` and resolve installed plugins.
@@ -176,38 +358,26 @@ export function discoverPlugins(): Promise<Plugin[]> {
       stdio: ["ignore", "pipe", "ignore"],
     });
     let stdout = "";
+    let settled = false;
+
+    const finish = (plugins: Plugin[]) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(plugins);
+    };
+
     const timer = setTimeout(() => {
       child.kill();
-      resolve([]);
-    }, 3000);
+      finish([]);
+    }, PLUGIN_DISCOVERY_TIMEOUT_MS);
 
     child.stdout?.on("data", (chunk) => {
       stdout += chunk;
     });
-    child.on("error", () => {
-      clearTimeout(timer);
-      resolve([]);
-    });
+    child.on("error", () => finish([]));
     child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code !== 0 || !stdout) return resolve([]);
-      try {
-        const raw = JSON.parse(stdout);
-        const installed: Array<Record<string, unknown>> = raw.installed ?? [];
-        resolve(
-          installed.map((p) => {
-            const id = String(p.id ?? p.name ?? "");
-            const display = String(p.display_name ?? p.name ?? id);
-            return {
-              name: display || id.split("@")[0],
-              id,
-              description: String(p.description ?? p.short_description ?? ""),
-            };
-          }),
-        );
-      } catch {
-        resolve([]);
-      }
+      finish(code === 0 ? parseInstalledPlugins(stdout) : []);
     });
   });
 }

@@ -3,6 +3,7 @@ import {
   CompletionItemKind,
   CompletionList,
   Position,
+  TextEdit,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as fs from "fs";
@@ -11,18 +12,41 @@ import { Fzf, byLengthAsc, byStartAsc } from "fzf";
 import { SlashCommand } from "./commands";
 import { Skill, Plugin } from "./skills";
 
+export enum CompletionType {
+  Slash = "slash",
+  Skill = "skill",
+  Plugin = "plugin",
+  File = "file",
+}
+
+enum TriggerType {
+  Slash = "slash",
+  Skill = "skill",
+  Mention = "mention",
+  None = "none",
+}
+
+enum CompletionSortGroup {
+  // The class prefix keeps each class contiguous without assigning a special
+  // priority to plugins. The client still decides the order between classes.
+  Slash = "slash",
+  Skill = "skill",
+  Plugin = "plugin",
+  File = "file",
+}
+
 type TriggerContext =
-  | { type: "slash"; prefix: string; start: number }
-  | { type: "skill"; prefix: string; start: number }
-  | { type: "plugin"; prefix: string; start: number }
-  | { type: "none" };
+  | { type: TriggerType.Slash; prefix: string; start: number }
+  | { type: TriggerType.Skill; prefix: string; start: number }
+  | { type: TriggerType.Mention; prefix: string; start: number }
+  | { type: TriggerType.None };
 
 export function getTriggerContext(lineText: string): TriggerContext {
   // Match a slash command at start of line or after whitespace
   const slashMatch = lineText.match(/(?:^|\s)(\/[\w-]*)$/);
   if (slashMatch) {
     return {
-      type: "slash",
+      type: TriggerType.Slash,
       prefix: slashMatch[1],
       start: lineText.length - slashMatch[1].length,
     };
@@ -32,7 +56,7 @@ export function getTriggerContext(lineText: string): TriggerContext {
   const skillMatch = lineText.match(/(?:^|\s)\$([\w-]*)$/);
   if (skillMatch) {
     return {
-      type: "skill",
+      type: TriggerType.Skill,
       prefix: skillMatch[1],
       start: lineText.length - skillMatch[1].length - 1,
     };
@@ -42,47 +66,69 @@ export function getTriggerContext(lineText: string): TriggerContext {
   const pluginMatch = lineText.match(/@(\S*)$/);
   if (pluginMatch) {
     return {
-      type: "plugin",
+      type: TriggerType.Mention,
       prefix: pluginMatch[1],
       start: pluginMatch.index ?? 0,
     };
   }
 
-  return { type: "none" };
+  return { type: TriggerType.None };
 }
 
-function replaceToken(position: Position, tokenStart: number, newText: string) {
+const AT_PREFIX = "@";
+const SKILL_PREFIX = "$";
+const COMPLETION_TRAILING_SPACE = " ";
+const MAX_COMPLETION_ITEMS = 100;
+const SORT_TEXT_WIDTH = 8;
+
+function replaceToken(
+  position: Position,
+  tokenStart: number,
+  newText: string,
+): TextEdit {
   return {
     range: {
       start: { line: position.line, character: tokenStart },
       end: position,
     },
-    newText,
+    newText: newText + COMPLETION_TRAILING_SPACE,
   };
 }
 
-const MAX_COMPLETION_ITEMS = 100;
-
-function fuzzyFind<T>(
+function fuzzyFind<T extends object>(
   items: T[],
   query: string,
   selector: (item: T) => string,
 ): T[] {
-  return new Fzf<unknown[]>(items, {
-    selector: selector as (item: unknown) => string,
+  // fzf's conditional option type cannot preserve a generic object element
+  // type here, so keep the cast inside this small adapter.
+  const finder = new Fzf<unknown[]>(items, {
+    selector: (item) => selector(item as T),
     limit: MAX_COMPLETION_ITEMS,
+    casing: "case-insensitive",
     forward: false,
-  })
-    .find(query)
-    .map((result) => result.item as T);
+  });
+  return finder.find(query).map((result) => result.item as T);
 }
 
-function serverRankedMetadata(filterText: string, index: number) {
-  const metadata: { filterText?: string; sortText: string } = {
-    sortText: index.toString().padStart(8, "0"),
+type CompletionMetadata = Pick<CompletionItem, "filterText" | "sortText">;
+
+function completionMetadata(
+  filterText: string,
+  index: number,
+  group: CompletionSortGroup,
+): CompletionMetadata {
+  const metadata: CompletionMetadata = {
+    sortText: `${group}:${index.toString().padStart(SORT_TEXT_WIDTH, "0")}`,
   };
   if (filterText) metadata.filterText = filterText;
   return metadata;
+}
+
+function pluginSearchText(plugin: Plugin): string {
+  return [plugin.name, plugin.title, ...plugin.aliases, plugin.description]
+    .filter(Boolean)
+    .join(" ");
 }
 
 export function getSlashCompletions(
@@ -93,12 +139,14 @@ export function getSlashCompletions(
 ): CompletionItem[] {
   return fuzzyFind(commands, prefix, (cmd) => cmd.name).map((cmd, index) => ({
     label: cmd.name,
-    kind: CompletionItemKind.Function,
+    // Slash commands are commands, not callable functions. Using Function
+    // makes some clients append `()` to the inserted command.
+    kind: CompletionItemKind.Keyword,
     detail: cmd.detail,
     // Documentation deferred to completionItem/resolve
-    data: { type: "slash", name: cmd.name },
+    data: { type: CompletionType.Slash, name: cmd.name },
     textEdit: replaceToken(position, tokenStart, cmd.name),
-    ...serverRankedMetadata(prefix, index),
+    ...completionMetadata(prefix, index, CompletionSortGroup.Slash),
   }));
 }
 
@@ -110,12 +158,16 @@ export function getSkillCompletions(
 ): CompletionItem[] {
   return fuzzyFind(skills, prefix, (skill) => skill.name).map(
     (skill, index) => ({
-      label: "$" + skill.name,
+      label: SKILL_PREFIX + skill.name,
       kind: CompletionItemKind.Class,
       detail: skill.description || "Skill",
-      data: { type: "skill", name: skill.name },
-      textEdit: replaceToken(position, tokenStart, "$" + skill.name),
-      ...serverRankedMetadata("$" + prefix, index),
+      data: { type: CompletionType.Skill, name: skill.name },
+      textEdit: replaceToken(position, tokenStart, SKILL_PREFIX + skill.name),
+      ...completionMetadata(
+        SKILL_PREFIX + prefix,
+        index,
+        CompletionSortGroup.Skill,
+      ),
     }),
   );
 }
@@ -133,12 +185,16 @@ export function getSkillCompletionsAt(
 ): CompletionItem[] {
   return fuzzyFind(skills, prefix, (skill) => skill.name).map(
     (skill, index) => ({
-      label: "$" + skill.name,
+      label: SKILL_PREFIX + skill.name,
       kind: CompletionItemKind.Class,
       detail: skill.description || "Skill",
-      data: { type: "skill", name: skill.name },
-      textEdit: replaceToken(position, tokenStart, "$" + skill.name),
-      ...serverRankedMetadata("@" + prefix, index),
+      data: { type: CompletionType.Skill, name: skill.name },
+      textEdit: replaceToken(position, tokenStart, SKILL_PREFIX + skill.name),
+      ...completionMetadata(
+        AT_PREFIX + prefix,
+        index,
+        CompletionSortGroup.Skill,
+      ),
     }),
   );
 }
@@ -149,16 +205,18 @@ export function getPluginCompletions(
   position: Position,
   tokenStart: number,
 ): CompletionItem[] {
-  return fuzzyFind(plugins, prefix, (plugin) => plugin.name).map(
-    (plugin, index) => ({
-      label: "@" + plugin.name,
-      kind: CompletionItemKind.Module,
-      detail: plugin.id,
-      data: { type: "plugin", name: plugin.name },
-      textEdit: replaceToken(position, tokenStart, "@" + plugin.name),
-      ...serverRankedMetadata("@" + prefix, index),
-    }),
-  );
+  return fuzzyFind(plugins, prefix, pluginSearchText).map((plugin, index) => ({
+    label: AT_PREFIX + plugin.name,
+    kind: CompletionItemKind.Module,
+    detail: plugin.id,
+    data: { type: CompletionType.Plugin, name: plugin.name },
+    textEdit: replaceToken(position, tokenStart, AT_PREFIX + plugin.name),
+    ...completionMetadata(
+      AT_PREFIX + prefix,
+      index,
+      CompletionSortGroup.Plugin,
+    ),
+  }));
 }
 
 export function getFileCompletions(
@@ -170,19 +228,22 @@ export function getFileCompletions(
   const items: CompletionItem[] = [];
 
   try {
-    for (const [index, entry] of listEntries(rootPath)
-      .find(prefix)
-      .map((result) => result.item)
-      .entries()) {
+    const matches = getFileFinder(rootPath).find(prefix);
+    for (const [index, match] of matches.entries()) {
+      const entry = match.item;
       items.push({
-        label: "@" + abbreviatedPath(entry.relPath),
+        label: AT_PREFIX + abbreviatedPath(entry.relPath),
         kind: entry.isDir ? CompletionItemKind.Folder : CompletionItemKind.File,
         detail: entry.relPath,
-        data: { type: "file", path: entry.relPath },
+        data: { type: CompletionType.File, path: entry.relPath },
         // Selecting a file mention consumes the `@` and writes the whole
         // path — the sigil is prompt state in the Codex composer, not text.
         textEdit: replaceToken(position, tokenStart, entry.relPath),
-        ...serverRankedMetadata("@" + prefix, index),
+        ...completionMetadata(
+          AT_PREFIX + prefix,
+          index,
+          CompletionSortGroup.File,
+        ),
       });
       if (items.length >= MAX_COMPLETION_ITEMS) break;
     }
@@ -285,14 +346,7 @@ function walkDir(rootPath: string, dir: string, results: DirEntry[]): void {
     return;
   }
   for (const entry of entries) {
-    if (entry.isDirectory() && IGNORED_DIRS.has(entry.name)) continue;
-    if (
-      entry.isFile() &&
-      (IGNORED_FILES.has(entry.name) ||
-        IGNORED_FILE_SUFFIXES.some((suffix) => entry.name.endsWith(suffix)))
-    ) {
-      continue;
-    }
+    if (isIgnoredEntry(entry)) continue;
     const fullPath = path.join(dir, entry.name);
     results.push({
       relPath: path.relative(rootPath, fullPath).split(path.sep).join("/"),
@@ -305,18 +359,29 @@ function walkDir(rootPath: string, dir: string, results: DirEntry[]): void {
   }
 }
 
+function isIgnoredEntry(entry: fs.Dirent): boolean {
+  if (entry.isDirectory()) return IGNORED_DIRS.has(entry.name);
+  if (!entry.isFile()) return false;
+  return (
+    IGNORED_FILES.has(entry.name) ||
+    IGNORED_FILE_SUFFIXES.some((suffix) => entry.name.endsWith(suffix))
+  );
+}
+
 // Typing `@src/com…` fires one completion request per keystroke; the TTL
 // keeps only the first request on disk.
-const entryCache = new Map<
-  string,
-  { expiresAt: number; entries: Fzf<DirEntry[]> }
->();
+interface CachedFileFinder {
+  expiresAt: number;
+  finder: Fzf<DirEntry[]>;
+}
+
+const entryCache = new Map<string, CachedFileFinder>();
 const ENTRY_CACHE_TTL_MS = 2000;
 const ENTRY_CACHE_MAX = 16;
 
-function listEntries(rootPath: string): Fzf<DirEntry[]> {
+function getFileFinder(rootPath: string): Fzf<DirEntry[]> {
   const cached = entryCache.get(rootPath);
-  if (cached && cached.expiresAt > Date.now()) return cached.entries;
+  if (cached && cached.expiresAt > Date.now()) return cached.finder;
 
   const entries: DirEntry[] = [];
   walkDir(rootPath, rootPath, entries);
@@ -329,7 +394,7 @@ function listEntries(rootPath: string): Fzf<DirEntry[]> {
   });
   entryCache.set(rootPath, {
     expiresAt: Date.now() + ENTRY_CACHE_TTL_MS,
-    entries: finder,
+    finder,
   });
 
   // Map iteration order is insertion order — evict the oldest.
@@ -338,6 +403,38 @@ function listEntries(rootPath: string): Fzf<DirEntry[]> {
     if (oldest !== undefined) entryCache.delete(oldest);
   }
   return finder;
+}
+
+function getMentionCompletions(
+  prefix: string,
+  position: Position,
+  tokenStart: number,
+  rootPath: string,
+  skills: Skill[],
+  plugins: Plugin[],
+): CompletionItem[] {
+  const pluginItems = getPluginCompletions(
+    prefix,
+    plugins,
+    position,
+    tokenStart,
+  );
+  const skillItems = getSkillCompletionsAt(
+    position,
+    tokenStart,
+    prefix,
+    skills,
+  );
+
+  // A bare `@` should show only known mention candidates. Avoid walking the
+  // workspace until the user provides a file-search prefix.
+  if (!prefix) return [...pluginItems, ...skillItems];
+
+  return [
+    ...pluginItems,
+    ...skillItems,
+    ...getFileCompletions(position, tokenStart, prefix, rootPath),
+  ];
 }
 
 export async function getCompletions(
@@ -355,42 +452,29 @@ export async function getCompletions(
 
   const ctx = getTriggerContext(lineText);
 
-  if (ctx.type === "slash") {
+  if (ctx.type === TriggerType.Slash) {
     return {
       isIncomplete: true,
       items: getSlashCompletions(ctx.prefix, commands, position, ctx.start),
     };
   }
-  if (ctx.type === "skill") {
+  if (ctx.type === TriggerType.Skill) {
     return {
       isIncomplete: true,
       items: getSkillCompletions(ctx.prefix, skills, position, ctx.start),
     };
   }
-  if (ctx.type === "plugin") {
-    // @ in the Codex composer opens the unified mention popup: fuzzy file
-    // search merged with plugin and skill candidates.
-    const pluginItems = getPluginCompletions(
-      ctx.prefix,
-      plugins,
-      position,
-      ctx.start,
-    );
-    const skillItems = getSkillCompletionsAt(
-      position,
-      ctx.start,
-      ctx.prefix,
-      skills,
-    );
-    const fileItems = getFileCompletions(
-      position,
-      ctx.start,
-      ctx.prefix,
-      rootPath,
-    );
+  if (ctx.type === TriggerType.Mention) {
     return {
       isIncomplete: true,
-      items: [...pluginItems, ...skillItems, ...fileItems],
+      items: getMentionCompletions(
+        ctx.prefix,
+        position,
+        ctx.start,
+        rootPath,
+        skills,
+        plugins,
+      ),
     };
   }
 

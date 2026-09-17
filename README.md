@@ -36,6 +36,10 @@ The attached LSP client is named `codex-prompt` in both adapters.
 
 ## Adapters
 
+Adapters add editor-specific features on top of the shared language-server
+features, including document detection, mention highlighting, and atomic
+completion deletion.
+
 <details>
 <summary>Neovim adapter</summary>
 
