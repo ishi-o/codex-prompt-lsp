@@ -16,12 +16,11 @@ markdown files) and attach the language server, which provides:
   `<project>/.codex/skills/*/SKILL.md` (repo skills, higher priority) and
   `$CODEX_HOME/skills/*/SKILL.md` (user skills)
 - **Unified mentions** (`@`) — `@` in the Codex composer opens the unified
-  mention popup: fzf-powered fuzzy file search, installed plugins (via
+  mention popup: fuzzy file search, installed plugins (via
   `codex plugin list --json`), and skills (inserted as `$name`, their sigil)
-- **Server-side fuzzy filtering** — slash commands, skills, plugins, and files
-  are filtered and ranked by the LSP server, so the editor does not need its
-  own fuzzy-completion capability
-- **Self-contained distribution** — npm executable and Mason package
+- **Fuzzy filtering** — slash commands, skills, plugins, and files are filtered
+  and ranked by relevance
+- **Distribution** — npm package and Mason registry
 - **Atomic completion deletion** — pressing Backspace at the end of an exact
   `$skill` or `@plugin` completion removes the entire token; incomplete prefixes
   continue to delete one character at a time
@@ -66,12 +65,7 @@ vim.pack.add("ishi-o/codex-prompt-lsp")
 require("nvim-codex-lsp").setup()
 ```
 
-The adapter works out of the box with no explicit setup —
-`plugin/nvim-codex-lsp.lua` auto-configures with defaults.
-
-The adapter uses the single esbuild bundle committed in this repository, which
-includes runtime libraries such as the TypeScript `fzf` matcher. Users do not
-run `npm install` or install any external command-line search tool.
+`plugin/nvim-codex-lsp.lua` auto-configures the adapter with defaults.
 
 ### Configuration
 
@@ -102,8 +96,8 @@ that match any of:
 <details>
 <summary>VS Code adapter</summary>
 
-The `vscode/` directory contains the VS Code adapter. Build and package its
-self-contained VSIX with:
+The `vscode/` directory contains the VS Code adapter. Build and package it
+with:
 
 ```
 make package-vscode
@@ -113,13 +107,13 @@ make package-vscode
 
 - VS Code >= 1.88
 
-The extension includes the language server and detects matching files under
-`$CODEX_HOME` and project `.codex` directories. It requires the `markdown`
-language ID and `.md` extension by default, so ordinary Markdown files are not
-attached. It provides the same completions, hover information, mention
-highlighting, and atomic Backspace behavior as the Neovim adapter. Detection
-and editor-only features can be configured independently, and advanced targets
-can be added with `codexPromptLsp.documentSelectors`.
+The extension detects matching files under `$CODEX_HOME` and project `.codex`
+directories. Matching files use the `markdown` language ID and `.md` extension
+by default, so ordinary Markdown files are not attached. It provides the same
+completions, hover information, mention highlighting, and atomic Backspace
+behavior as the Neovim adapter. Detection and editor-only features can be
+configured independently, and advanced targets can be added with
+`codexPromptLsp.documentSelectors`.
 
 </details>
 
@@ -138,14 +132,8 @@ require("mason").setup({
 
 After the npm package is published, install it with `:MasonInstall codex-prompt-lsp`.
 
-Mason installs the editor-neutral server only; it does not install an adapter.
-With Mason alone, you must configure an LSP client yourself to launch
-`codex-prompt-lsp --stdio`. That provides the server features: slash commands,
-skills, unified file/plugin/skill mentions, fuzzy filtering, hover, and
-completion insertion semantics.
-
-The Neovim adapter currently uses its bundled server and does not automatically
-prefer a Mason-installed executable.
+Mason provides the editor-neutral server. Configure an LSP client to launch
+`codex-prompt-lsp --stdio`.
 
 ## Development
 
@@ -153,8 +141,8 @@ prefer a Mason-installed executable.
 make build   # install deps and build server/dist/server.js
 ```
 
-The LSP server is a TypeScript project under `server/`, bundled to a single
-file with esbuild and committed to the repo so users don't need to build it.
+The LSP server source is under `server/`; `make build` produces
+`server/dist/server.js`.
 
 ## License
 
