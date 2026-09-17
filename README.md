@@ -115,9 +115,8 @@ filtering, hover descriptions, mention highlighting, and atomic movement and
 Backspace behavior. Multiline paste preservation is currently Neovim-only.
 
 GitHub Actions publishes the extension to the Visual Studio Code Marketplace
-for version tags after `VSCE_PAT` is configured, and uploads a `.vsix` artifact
-for every build. Before a Marketplace release is available, build and install
-the VSIX with:
+and uploads a `.vsix` artifact for every build. Before a Marketplace release is
+available, build and install the VSIX with:
 
 ```
 make package-vscode

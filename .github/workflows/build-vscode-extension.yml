@@ -18,12 +18,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: |
             server/package-lock.json
@@ -69,6 +72,4 @@ jobs:
           (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
           startsWith(github.ref, 'refs/tags/v')
         working-directory: vscode
-        run: npx vsce publish --no-dependencies
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx @vscode/vsce publish --no-dependencies --oidc
